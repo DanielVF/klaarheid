@@ -1,0 +1,5 @@
+{
+  "name"    : "Gorogue",
+  "version" : "0.1.0",
+  "main"    : "launcher.js"
+}
