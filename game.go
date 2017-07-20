@@ -1,7 +1,7 @@
 package main
 
 import (
-	// "fmt"
+	"fmt"
 	// "os"
 	"time"
 	engine "./goroguego"
@@ -18,10 +18,16 @@ type Unit struct {
 	world		*World
 	char		byte
 	colour		byte
+	class		string
+	weapon		string
 	x			int
 	y			int
 	hp			int
 	pc			bool
+}
+
+func (u *Unit) String() string {
+	return fmt.Sprintf("- %s (%dhp), %s", u.class, u.hp, u.weapon)
 }
 
 func (u *Unit) TryMove(x, y int) {
@@ -34,7 +40,6 @@ func (u *Unit) TryMove(x, y int) {
 		u.y = tar_y
 	}
 }
-
 
 type World struct {
 	window		*engine.Window
@@ -63,6 +68,11 @@ func (w *World) Draw() {
 		}
 	}
 
+	if (w.selection != nil) {
+		s := w.selection.String()
+		w.WriteSelection(s)
+	}
+
 	w.window.Flip()
 }
 
@@ -76,6 +86,8 @@ func (w *World) Start() {
 		world: w,
 		char: '@',
 		colour: 'g',
+		class: "soldier",
+		weapon: "rifle",
 		x: 5,
 		y: 5,
 		hp: 4,
@@ -132,7 +144,13 @@ func (w *World) Play() {
 
 		w.Draw()
 
-		time.Sleep(10 * time.Millisecond)
+		time.Sleep(50 * time.Millisecond)
+	}
+}
+
+func (w *World) WriteSelection(s string) {
+	for x := 0; x < len(s); x++ {
+		w.window.Set(x, w.height + 1, s[x], 'w')
 	}
 }
 
