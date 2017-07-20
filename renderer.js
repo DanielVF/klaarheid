@@ -68,8 +68,6 @@ function make_renderer() {
 		let charstring = opts.chars;
 		let colourstring = opts.colours;
 
-		console.log(colourstring);
-
 		for (let x = 0; x < renderer.width; x++) {
 			for (let y = 0; y < renderer.height; y++) {
 				let index = y * renderer.width + x;
