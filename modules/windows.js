@@ -30,8 +30,8 @@ function new_window(config) {
 
 	let win = new electron.BrowserWindow({
 		title: config.name,
-		width: 200,
-		height: 200,
+		width: config.width * config.boxwidth,
+		height: config.height * config.boxheight,
 		backgroundColor: "#000000",
 		useContentSize: true,
 		resizable: config.resizable
