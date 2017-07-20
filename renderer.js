@@ -56,6 +56,14 @@ function make_renderer() {
 			renderer.postponed_actions[n]();
 		}
 		renderer.postponed_actions = [];
+
+		document.addEventListener("keydown", (evt) => {
+			ipcRenderer.send("keydown", evt.key)
+		});
+
+		document.addEventListener("keyup", (evt) => {
+			ipcRenderer.send("keyup", evt.key)
+		});
 	};
 
 	renderer.flip = (opts) => {

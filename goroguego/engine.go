@@ -1,13 +1,18 @@
 package goroguego
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
+	"os"
 )
 
 const (
 	CLEAR_COLOUR = 'w'
 )
+
+var keypress_chan = make(chan string)
+var key_query_chan = make(chan chan string)
 
 // ----------------------------------------------------------
 
@@ -20,7 +25,7 @@ func (i *id_object) next() int {
 	return i.current
 }
 
-var id_maker id_object;
+var id_maker id_object
 
 // ----------------------------------------------------------
 
@@ -66,10 +71,97 @@ type FlipMsg struct {
 
 // ----------------------------------------------------------
 
+type IncomingMsgType struct {
+	Type			string			`json:"type"`
+}
+
+// ----------------------------------------------------------
+
+type IncomingKeyContent struct {
+	Down			bool				`json:"down"`
+	Uid				int					`json:"uid"`
+	Key				string				`json:"key"`
+}
+
+type IncomingKey struct {
+	Type			string				`json:"type"`
+	Content			IncomingKeyContent	`json:"content"`
+}
+
+// ----------------------------------------------------------
+
+func init() {
+	go listener()
+	go keymaster()
+}
+
+func listener() {
+
+	// logfile, _ := os.Create("stdin.txt")
+
+	scanner := bufio.NewScanner(os.Stdin)
+
+	for {
+		scanner.Scan()
+
+		// logfile.WriteString(scanner.Text() + "\n")
+
+		var type_obj IncomingMsgType
+
+		err := json.Unmarshal(scanner.Bytes(), &type_obj)
+		if err != nil {
+			continue
+		}
+
+		if type_obj.Type == "key" {
+
+			var key_msg IncomingKey
+
+			err := json.Unmarshal(scanner.Bytes(), &key_msg)
+
+			if err != nil {
+				continue
+			}
+
+			if key_msg.Content.Down {
+				keypress_chan <- key_msg.Content.Key
+			}
+		}
+	}
+}
+
+func keymaster() {
+
+	var keyqueue []string
+
+	for {
+		select {
+		case response_chan := <- key_query_chan:
+			if len(keyqueue) == 0 {
+				response_chan <- ""
+			} else {
+				response_chan <- keyqueue[0]
+				keyqueue = keyqueue[1:]
+			}
+		case keypress := <- keypress_chan:
+			keyqueue = append(keyqueue, keypress)
+		}
+	}
+}
+
+func GetKeypress() string {
+	response_chan := make(chan string)
+	key_query_chan <- response_chan
+	key := <- response_chan
+	return key
+}
+
+// ----------------------------------------------------------
+
 func (w *Window) Set(x, y int, char, colour byte) {
 	index := y * w.Width + x
 	if index < 0 || index >= len(w.Chars) || x < 0 || x >= w.Width || y < 0 || y >= w.Height {
-		panic("index in set()")
+		return
 	}
 	w.Chars[index] = char
 	w.Colours[index] = colour

@@ -6,7 +6,7 @@ const electron = require("electron");
 const ipcMain = require("electron").ipcMain;
 const url = require("url");
 
-let windobjects = Object.create(null);		// {win, config, ready, queue}
+let windobjects = Object.create(null);		// uid --> {uid, win, config, ready, queue}
 
 function get_windobject_from_event(event) {
 	for (let uid in windobjects) {
@@ -24,9 +24,7 @@ function resize(windobject, opts) {
 	}
 };
 
-// Commands from main.js...
-
-exports.new = (config) => {
+function new_window(config) {
 
 	assert(windobjects[config.uid] === undefined);
 
@@ -50,6 +48,7 @@ exports.new = (config) => {
 	});
 
 	windobjects[config.uid] = {
+		uid: config.uid,
 		win: win,
 		config: config,
 		ready: false,
@@ -61,7 +60,7 @@ exports.new = (config) => {
 	};
 };
 
-exports.flip = (content) => {
+function flip(content) {
 	let windobject = windobjects[content.uid];
 	send_or_queue(windobject, "flip", content);
 }
@@ -106,3 +105,8 @@ ipcMain.on("ready", (event, opts) => {
 
 	windobject.queue = [];
 });
+
+
+exports.get_windobject_from_event = get_windobject_from_event;
+exports.new_window = new_window;
+exports.flip = flip;

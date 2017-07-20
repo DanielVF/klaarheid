@@ -13,22 +13,40 @@ const (
 
 func main() {
 	w := engine.NewWindow("World", "renderer.html", WIDTH, HEIGHT, 15, 20, 100, true)
-	w.Clear()
 
 	player_x := 5
 	player_y := 5
 
-	for {
-		player_x += 1
+	w.Clear()
+	w.Set(player_x, player_y, '@', 'g')
+	w.Flip()
 
-		if player_x >= WIDTH {
-			player_x = 0
+	for {
+
+		key := engine.GetKeypress()
+		if key == "" {
+			time.Sleep(10 * time.Millisecond)
+			continue
+		}
+
+		if key == "a" && player_x > 0 {
+			player_x -= 1
+		}
+
+		if key == "d" && player_x < WIDTH - 1 {
+			player_x += 1
+		}
+
+		if key == "w" && player_y > 0 {
+			player_y -= 1
+		}
+
+		if key == "s" && player_y < HEIGHT - 1 {
+			player_y += 1
 		}
 
 		w.Clear()
 		w.Set(player_x, player_y, '@', 'g')
 		w.Flip()
-
-		time.Sleep(150 * time.Millisecond)
 	}
 }
