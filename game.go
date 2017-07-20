@@ -1,54 +1,148 @@
 package main
 
 import (
+	// "fmt"
+	// "os"
 	"time"
-
 	engine "./goroguego"
 )
 
+// var logfile, _ = os.Create("gamelog.txt")
+
 const (
-	WIDTH = 50
-	HEIGHT = 30
+	WORLD_WIDTH = 50
+	WORLD_HEIGHT = 28
 )
 
-func main() {
-	w := engine.NewWindow("World", "renderer.html", WIDTH, HEIGHT, 15, 20, 100, true)
+type Unit struct {
+	world		*World
+	char		byte
+	colour		byte
+	x			int
+	y			int
+	hp			int
+	pc			bool
+}
 
-	player_x := 5
-	player_y := 5
+func (u *Unit) TryMove(x, y int) {
 
-	w.Clear()
-	w.Set(player_x, player_y, '@', 'g')
-	w.SetHighlight(player_x, player_y)
-	w.Flip()
+	tar_x := u.x + x
+	tar_y := u.y + y
+
+	if u.world.InBounds(tar_x, tar_y) {
+		u.x = tar_x
+		u.y = tar_y
+	}
+}
+
+
+type World struct {
+	window		*engine.Window
+	width		int
+	height		int
+	selection	*Unit
+	units		[]*Unit
+}
+
+func (w *World) InBounds(x, y int) bool {
+	if x >= 0 && x < w.width && y >= 0 && y < w.height {
+		return true
+	} else {
+		return false
+	}
+}
+
+func (w *World) Draw() {
+
+	w.window.Clear()
+
+	for _, unit := range w.units {
+		w.window.Set(unit.x, unit.y, unit.char, unit.colour)
+		if unit == w.selection {
+			w.window.SetHighlight(unit.x, unit.y)
+		}
+	}
+
+	w.window.Flip()
+}
+
+func (w *World) AddUnit(unit *Unit) {
+	w.units = append(w.units, unit)
+}
+
+func (w *World) Start() {
+
+	soldier := Unit{
+		world: w,
+		char: '@',
+		colour: 'g',
+		x: 5,
+		y: 5,
+		hp: 4,
+		pc: true,
+	}
+
+	w.AddUnit(&soldier)
+	w.Play()
+}
+
+func (w *World) Play() {
 
 	for {
 
-		key := engine.GetKeypress()
-		if key == "" {
-			time.Sleep(10 * time.Millisecond)
-			continue
+		// Deal with mouse events...
+
+		for {
+			click, err := engine.GetMousedown()
+			if err != nil {
+				break
+			}
+			w.selection = nil
+			for _, unit := range w.units {
+				if unit.x == click.X && unit.y == click.Y {
+					w.selection = unit
+				}
+			}
 		}
 
-		if key == "a" && player_x > 0 {
-			player_x -= 1
+		// Deal with key events...
+
+		var key = ""
+
+		// For now, we just skip all but the last keypress on the queue...
+
+		for {
+			nextkey, err := engine.GetKeypress()
+			if err != nil {
+				break
+			}
+			key = nextkey
 		}
 
-		if key == "d" && player_x < WIDTH - 1 {
-			player_x += 1
+		if key == "Escape" {
+			w.selection = nil
 		}
 
-		if key == "w" && player_y > 0 {
-			player_y -= 1
+		if w.selection != nil {
+			if key == "w" { w.selection.TryMove( 0, -1) }
+			if key == "a" { w.selection.TryMove(-1,  0) }
+			if key == "s" { w.selection.TryMove( 0,  1) }
+			if key == "d" { w.selection.TryMove( 1,  0) }
 		}
 
-		if key == "s" && player_y < HEIGHT - 1 {
-			player_y += 1
-		}
+		w.Draw()
 
-		w.Clear()
-		w.Set(player_x, player_y, '@', 'g')
-		w.SetHighlight(player_x, player_y)
-		w.Flip()
+		time.Sleep(10 * time.Millisecond)
 	}
+}
+
+func main() {
+
+	world := World{
+		window: engine.NewWindow("World", "renderer.html", WORLD_WIDTH, WORLD_HEIGHT + 2, 15, 20, 100, true),
+		width: WORLD_WIDTH,
+		height: WORLD_HEIGHT,
+	}
+
+	world.Start()
 }
