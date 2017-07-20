@@ -14,6 +14,9 @@ const (
 var keypress_chan = make(chan string)
 var key_query_chan = make(chan chan string)
 
+var mousedown_chan = make(chan Point)
+var mouse_query_chan = make(chan chan Point)
+
 // var logfile, _ = os.Create("logfile.txt")
 
 // ----------------------------------------------------------
@@ -41,64 +44,78 @@ func (b ByteSlice) MarshalJSON() ([]byte, error) {
 // ----------------------------------------------------------
 
 type Point struct {
-	X				int					`json:"x"`
-	Y				int					`json:"y"`
+	X				int						`json:"x"`
+	Y				int						`json:"y"`
 }
 
 // ----------------------------------------------------------
 
 type Window struct {
-	Uid				int					`json:"uid"`
-	Width			int					`json:"width"`
-	Height			int					`json:"height"`
-	Chars			ByteSlice			`json:"chars"`
-	Colours			ByteSlice			`json:"colours"`
-	Highlight		Point				`json:"highlight"`
+	Uid				int						`json:"uid"`
+	Width			int						`json:"width"`
+	Height			int						`json:"height"`
+	Chars			ByteSlice				`json:"chars"`
+	Colours			ByteSlice				`json:"colours"`
+	Highlight		Point					`json:"highlight"`
 }
 
 // ----------------------------------------------------------
 
 type NewMsgContent struct {
-	Name			string				`json:"name"`
-	Page			string				`json:"page"`
-	Uid				int					`json:"uid"`
-	Width			int					`json:"width"`
-	Height			int					`json:"height"`
-	BoxWidth		int					`json:"boxwidth"`
-	BoxHeight		int					`json:"boxheight"`
-	FontPercent		int					`json:"fontpercent"`
-	Resizable		bool				`json:"resizable"`
+	Name			string					`json:"name"`
+	Page			string					`json:"page"`
+	Uid				int						`json:"uid"`
+	Width			int						`json:"width"`
+	Height			int						`json:"height"`
+	BoxWidth		int						`json:"boxwidth"`
+	BoxHeight		int						`json:"boxheight"`
+	FontPercent		int						`json:"fontpercent"`
+	Resizable		bool					`json:"resizable"`
 }
 
 type NewMsg struct {
-	Command			string				`json:"command"`
-	Content			NewMsgContent		`json:"content"`
+	Command			string					`json:"command"`
+	Content			NewMsgContent			`json:"content"`
 }
 
 // ----------------------------------------------------------
 
 type FlipMsg struct {
-	Command			string				`json:"command"`
-	Content			*Window				`json:"content"`
+	Command			string					`json:"command"`
+	Content			*Window					`json:"content"`
 }
 
 // ----------------------------------------------------------
 
 type IncomingMsgType struct {
-	Type			string				`json:"type"`
+	Type			string					`json:"type"`
 }
 
 // ----------------------------------------------------------
 
 type IncomingKeyContent struct {
-	Down			bool				`json:"down"`
-	Uid				int					`json:"uid"`
-	Key				string				`json:"key"`
+	Down			bool					`json:"down"`
+	Uid				int						`json:"uid"`
+	Key				string					`json:"key"`
 }
 
 type IncomingKey struct {
-	Type			string				`json:"type"`
-	Content			IncomingKeyContent	`json:"content"`
+	Type			string					`json:"type"`
+	Content			IncomingKeyContent		`json:"content"`
+}
+
+// ----------------------------------------------------------
+
+type IncomingMouseContent struct {
+	Down			bool					`json:"down"`
+	Uid				int						`json:"uid"`
+	X				int						`json:"x"`
+	Y				int						`json:"y"`
+}
+
+type IncomingMouse struct {
+	Type			string					`json:"type"`
+	Content			IncomingMouseContent	`json:"content"`
 }
 
 // ----------------------------------------------------------
@@ -106,6 +123,7 @@ type IncomingKey struct {
 func init() {
 	go listener()
 	go keymaster()
+	go mousemaster()
 }
 
 func listener() {
@@ -138,6 +156,21 @@ func listener() {
 				keypress_chan <- key_msg.Content.Key
 			}
 		}
+
+		if type_obj.Type == "mouse" {
+
+			var mouse_msg IncomingMouse
+
+			err := json.Unmarshal(scanner.Bytes(), &mouse_msg)
+
+			if err != nil {
+				continue
+			}
+
+			if mouse_msg.Content.Down {
+				mousedown_chan <- Point{mouse_msg.Content.X, mouse_msg.Content.Y}
+			}
+		}
 	}
 }
 
@@ -160,11 +193,53 @@ func keymaster() {
 	}
 }
 
-func GetKeypress() string {
+func GetKeypress() (string, error) {
+
 	response_chan := make(chan string)
 	key_query_chan <- response_chan
+
 	key := <- response_chan
-	return key
+	var err error = nil
+
+	if key == "" {
+		err = fmt.Errorf("GetKeypress(): nothing on queue")
+	}
+
+	return key, err
+}
+
+func mousemaster() {
+
+	var mousequeue []Point
+
+	for {
+		select {
+		case response_chan := <- mouse_query_chan:
+			if len(mousequeue) == 0 {
+				response_chan <- Point{-1, -1}					// Note this: -1, -1 is used as a flag for empty queue
+			} else {
+				response_chan <- mousequeue[0]
+				mousequeue = mousequeue[1:]
+			}
+		case mousedown := <- mousedown_chan:
+			mousequeue = append(mousequeue, mousedown)
+		}
+	}
+}
+
+func GetMousedown() (Point, error) {
+
+	response_chan := make(chan Point)
+	mouse_query_chan <- response_chan
+
+	point := <- response_chan
+	var err error = nil
+
+	if point.X < 0 {											// Note this: -1, -1 is used as a flag for empty queue
+		err = fmt.Errorf("GetMousedown(): nothing on queue")
+	}
+
+	return point, err
 }
 
 // ----------------------------------------------------------
