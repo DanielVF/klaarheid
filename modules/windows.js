@@ -15,33 +15,16 @@ function get_windobject_from_event(event) {
 			return val;
 		}
 	}
+	return undefined;
 }
 
-function get_win_from_event(event) {
-	for (let uid in windobjects) {
-		let val = windobjects[uid];
-		if (val.win.webContents === event.sender) {
-			return val.win;
-		}
-	}
-}
-
-function get_config_from_event(event) {
-	for (let uid in windobjects) {
-		let val = windobjects[uid];
-		if (val.win.webContents === event.sender) {
-			return val.config;
-		}
-	}
-}
-
-function resize(win, opts) {
-	if (win) {
-		win.setContentSize(opts.xpixels, opts.ypixels);
+function resize(windobject, opts) {
+	if (windobject) {
+		windobject.win.setContentSize(opts.xpixels, opts.ypixels);
 	}
 };
 
-// Commands from launcher.js...
+// Commands from main.js...
 
 exports.new = (config) => {
 
@@ -63,53 +46,63 @@ exports.new = (config) => {
 	}));
 
 	win.on("closed", () => {
-		// TODO
+		delete windobjects[config.uid];
 	});
 
-	windobjects[config.uid] = {win: win, config: config, ready: false, queue: []};
+	windobjects[config.uid] = {
+		win: win,
+		config: config,
+		ready: false,
+		queue: [],
+
+		send: (channel, msg) => {
+			win.webContents.send(channel, msg);
+		}
+	};
 };
 
-function maybe_add_to_queue(windobject, retry_func) {
-	if (windobject.ready === false) {
-		windobject.queue.push(retry_func);
-		return true;
-	}
-	return false;
+exports.flip = (content) => {
+	let windobject = windobjects[content.uid];
+	send_or_queue(windobject, "flip", content);
 }
 
-exports.flip = (content) => {
+// Messages either get sent, or if the window isn't ready, put on a queue...
 
-	let windobject = windobjects[content.uid];
-	if (maybe_add_to_queue(windobject, () => {exports.flip(content);})) {
+function send_or_queue(windobject, channel, msg) {
+	if (windobject === undefined) {
 		return;
 	}
-
-	let win = windobjects[content.uid].win;
-	win.webContents.send("flip", content);
+	if (windobject.ready !== true) {
+		windobject.queue.push(() => windobject.send(channel, msg))
+		return;
+	}
+	windobject.send(channel, msg);
 }
 
 // Messages from a window...
 
 ipcMain.on("resize", (event, opts) => {
-	let win = get_win_from_event(event);
-	resize(win, opts);
+	let windobject = get_windobject_from_event(event);
+	resize(windobject, opts);
 });
 
 ipcMain.on("ready", (event, opts) => {
 
 	let windobject = get_windobject_from_event(event);
+	if (windobject === undefined) {
+		return;
+	}
+
 	windobject.ready = true;
 
-	let config = get_config_from_event(event);
-	event.sender.send("init", config);
+	let config = windobject.config;
+	windobject.send("init", config);
 
-	// Now resend things which we queued up because the window wasn't ready.
-	// This might not be good enough (because the init message is async?)
-	// therefore the renderer also implements its own ability to delay
-	// a flip message if needed.
+	// Now carry out whatever actions were delayed because the window wasn't ready...
 
 	for (let n = 0; n < windobject.queue.length; n++) {
 		windobject.queue[n]();
 	}
+
 	windobject.queue = [];
 });

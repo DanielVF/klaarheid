@@ -6,15 +6,23 @@ const fs = require("fs");
 const ipcRenderer = require("electron").ipcRenderer;
 const readline = require("readline");
 
+// --------------------------------------------------------------
+
+const colour_dict = JSON.parse(fs.readFileSync("colours.json"));
+
+// --------------------------------------------------------------
+
 function id_from_xy(x, y) {
 	return `td_${x}_${y}`;
 }
+
+// --------------------------------------------------------------
 
 function make_renderer() {
 
 	let renderer = {
 		ready_to_flip: false,
-		postponed_flip_message: null,
+		postponed_actions: [],
 	};
 
 	renderer.init = (opts) => {
@@ -43,18 +51,24 @@ function make_renderer() {
 		renderer.resize(opts.width * opts.boxwidth, opts.height * opts.boxheight);
 
 		renderer.ready_to_flip = true;
-		if (renderer.postponed_flip_message) {
-			renderer.flip(postponed_flip_message);
-			renderer.postponed_flip_message = null;
+
+		for (let n = 0; n < renderer.postponed_actions.length; n++) {
+			renderer.postponed_actions[n]();
 		}
+		renderer.postponed_actions = [];
 	};
 
-	renderer.flip = (charstring) => {
+	renderer.flip = (opts) => {
 
 		if (renderer.ready_to_flip !== true) {
-			renderer.postponed_flip_message = charstring;
+			renderer.postponed_actions.push(() => renderer.flip(opts));
 			return;
 		}
+
+		let charstring = opts.chars;
+		let colourstring = opts.colours;
+
+		console.log(colourstring);
 
 		for (let x = 0; x < renderer.width; x++) {
 			for (let y = 0; y < renderer.height; y++) {
@@ -63,6 +77,11 @@ function make_renderer() {
 				let element = document.getElementById(id);
 				if (element) {
 					element.innerHTML = charstring.charAt(index);
+					let colour_key = colourstring.charAt(index);
+					let colour = colour_dict[colour_key];
+					if (colour) {
+						element.style.color = colour;
+					}
 				}
 			}
 		}
@@ -79,14 +98,20 @@ function make_renderer() {
 	return renderer;
 }
 
+// --------------------------------------------------------------
+
 let renderer = make_renderer();
+
+// --------------------------------------------------------------
 
 ipcRenderer.on("init", (event, opts) => {
 	renderer.init(opts);
 });
 
 ipcRenderer.on("flip", (event, opts) => {
-	renderer.flip(opts.chars);
+	renderer.flip(opts);
 });
+
+// --------------------------------------------------------------
 
 ipcRenderer.send("ready", null);	// triggers an init message to be sent to us

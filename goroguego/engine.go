@@ -5,6 +5,10 @@ import (
 	"fmt"
 )
 
+const (
+	CLEAR_COLOUR = 'w'
+)
+
 // ----------------------------------------------------------
 
 type id_object struct {
@@ -24,7 +28,8 @@ type Window struct {
 	Uid				int
 	Width			int
 	Height			int
-	Content			[]byte
+	Chars			[]byte
+	Colours			[]byte
 }
 
 // ----------------------------------------------------------
@@ -51,6 +56,7 @@ type NewMsg struct {
 type FlipMsgContent struct {
 	Uid				int				`json:"uid"`
 	Chars			string			`json:"chars"`
+	Colours			string			`json:"colours"`
 }
 
 type FlipMsg struct {
@@ -60,17 +66,19 @@ type FlipMsg struct {
 
 // ----------------------------------------------------------
 
-func (w *Window) Set(x, y int, c byte) {
+func (w *Window) Set(x, y int, char, colour byte) {
 	index := y * w.Width + x
-	if index < 0 || index >= len(w.Content) || x < 0 || x >= w.Width || y < 0 || y >= w.Height {
+	if index < 0 || index >= len(w.Chars) || x < 0 || x >= w.Width || y < 0 || y >= w.Height {
 		panic("index in set()")
 	}
-	w.Content[index] = c
+	w.Chars[index] = char
+	w.Colours[index] = colour
 }
 
-func (w *Window) Clear(c byte) {
-	for n := 0; n < len(w.Content); n++ {
-		w.Content[n] = c
+func (w *Window) Clear() {
+	for n := 0; n < len(w.Chars); n++ {
+		w.Chars[n] = ' '
+		w.Colours[n] = CLEAR_COLOUR
 	}
 }
 
@@ -78,7 +86,8 @@ func (w *Window) Flip() {
 
 	m := FlipMsg{Command: "flip", Content: FlipMsgContent{
 			Uid: w.Uid,
-			Chars: string(w.Content),
+			Chars: string(w.Chars),
+			Colours: string(w.Colours),
 		},
 	}
 
@@ -95,7 +104,8 @@ func NewWindow(name, page string, width, height, boxwidth, boxheight, fontpercen
 
 	w := Window{Uid: uid, Width: width, Height: height}
 
-	w.Content = make([]byte, width * height)
+	w.Chars = make([]byte, width * height)
+	w.Colours = make([]byte, width * height)
 
 	// Create the message to send to the server...
 
