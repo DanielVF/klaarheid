@@ -109,7 +109,7 @@ function make_renderer() {
 						element.style["color"] = colour;
 					}
 					if (x === highlight.x && y === highlight.y) {
-						element.style["background-color"] = "#333333";
+						element.style["background-color"] = "#494949";
 					} else {
 						element.style["background-color"] = "black";
 					}

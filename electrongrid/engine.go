@@ -1,4 +1,4 @@
-package goroguego
+package electrongrid
 
 import (
 	"bufio"

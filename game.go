@@ -6,7 +6,7 @@ import (
 	"io/ioutil"
 	// "os"
 	"time"
-	engine "./goroguego"
+	electron "./electrongrid"
 )
 
 const (
@@ -49,7 +49,7 @@ func (u *Object) TryMove(x, y int) {
 // -------------------------------------------------------------------
 
 type World struct {
-	window		*engine.Window
+	window		*electron.Window
 	width		int
 	height		int
 	selection	*Object
@@ -117,7 +117,7 @@ func (w *World) Play() {
 		// Deal with mouse events...
 
 		for {
-			click, err := engine.GetMousedown()
+			click, err := electron.GetMousedown()
 			if err != nil {
 				break
 			}
@@ -136,7 +136,7 @@ func (w *World) Play() {
 		// For now, we just skip all but the last keypress on the queue...
 
 		for {
-			nextkey, err := engine.GetKeypress()
+			nextkey, err := electron.GetKeypress()
 			if err != nil {
 				break
 			}
@@ -215,7 +215,7 @@ func (w *World) Tab() {
 func main() {
 
 	world := World{
-		window: engine.NewWindow("World", "renderer.html", WORLD_WIDTH, WORLD_HEIGHT + 2, 15, 20, 100, true),
+		window: electron.NewWindow("World", "renderer.html", WORLD_WIDTH, WORLD_HEIGHT + 2, 15, 20, 100, true),
 		width: WORLD_WIDTH,
 		height: WORLD_HEIGHT,
 	}
@@ -230,14 +230,14 @@ func object_from_name(name string, world *World, x, y int) *Object {
 
 	j, err := ioutil.ReadFile(filename)
 	if err != nil {
-		engine.Alertf(err.Error())
+		electron.Alertf(err.Error())
 	}
 
 	var new_object Object
 
 	err = json.Unmarshal(j, &new_object)
 	if err != nil {
-		engine.Alertf(err.Error())
+		electron.Alertf(err.Error())
 	}
 
 	new_object.X = x
