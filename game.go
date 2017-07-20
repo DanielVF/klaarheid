@@ -14,39 +14,96 @@ const (
 	WORLD_HEIGHT = 28
 )
 
-type Unit struct {
+// -----------------------------------------------------------------------------------
+
+type Object interface {
+	PC()									bool
+	HP()									int
+	X()										int
+	Y()										int
+	String()								string
+	Draw(win *engine.Window)
+	Highlight(win *engine.Window)
+}
+
+type Moveable interface {
+	TryMove(x, y int, world *World)			bool
+}
+
+// -----------------------------------------------------------------------------------
+
+type Body struct {
 	world		*World
 	char		byte
 	colour		byte
-	class		string
-	weapon		string
 	x			int
 	y			int
 	hp			int
 	pc			bool
 }
 
-func (u *Unit) String() string {
-	return fmt.Sprintf("- %s (%dhp), %s", u.class, u.hp, u.weapon)
+func (u *Body) PC() bool {
+	return u.pc
 }
 
-func (u *Unit) TryMove(x, y int) {
+func (u *Body) HP() int {
+	return u.hp
+}
+
+func (u *Body) X() int {
+	return u.x
+}
+
+func (u *Body) Y() int {
+	return u.y
+}
+
+func (u *Body) String() string {
+	return "something"
+}
+
+func (u *Body) Draw(win *engine.Window) {
+	win.Set(u.x, u.y, u.char, u.colour)
+}
+
+func (u *Body) Highlight(win *engine.Window) {
+	win.SetHighlight(u.x, u.y)
+}
+
+// -----------------------------------------------------------------------------------
+
+type Unit struct {
+	Body
+	class		string
+	weapon		string
+}
+
+func (u *Unit) String() string {
+	return fmt.Sprintf("- %s (%c) - %dhp - %s", u.class, u.char, u.hp, u.weapon)
+}
+
+func (u *Unit) TryMove(x, y int, world *World) bool {
 
 	tar_x := u.x + x
 	tar_y := u.y + y
 
-	if u.world.InBounds(tar_x, tar_y) {
+	if world.InBounds(tar_x, tar_y) {
 		u.x = tar_x
 		u.y = tar_y
+		return true
 	}
+
+	return false
 }
+
+// -----------------------------------------------------------------------------------
 
 type World struct {
 	window		*engine.Window
 	width		int
 	height		int
-	selection	*Unit
-	units		[]*Unit
+	selection	Object
+	objects		[]Object
 }
 
 func (w *World) InBounds(x, y int) bool {
@@ -61,10 +118,10 @@ func (w *World) Draw() {
 
 	w.window.Clear()
 
-	for _, unit := range w.units {
-		w.window.Set(unit.x, unit.y, unit.char, unit.colour)
-		if unit == w.selection {
-			w.window.SetHighlight(unit.x, unit.y)
+	for _, object := range w.objects {
+		object.Draw(w.window)
+		if object == w.selection {
+			object.Highlight(w.window)
 		}
 	}
 
@@ -76,25 +133,27 @@ func (w *World) Draw() {
 	w.window.Flip()
 }
 
-func (w *World) AddUnit(unit *Unit) {
-	w.units = append(w.units, unit)
+func (w *World) AddObject(object Object) {
+	w.objects = append(w.objects, object)
 }
 
 func (w *World) Start() {
 
 	soldier := Unit{
-		world: w,
-		char: '@',
-		colour: 'g',
+		Body: Body{
+			world: w,
+			char: '@',
+			colour: 'g',
+			x: 5,
+			y: 5,
+			hp: 4,
+			pc: true,
+		},
 		class: "soldier",
 		weapon: "rifle",
-		x: 5,
-		y: 5,
-		hp: 4,
-		pc: true,
 	}
 
-	w.AddUnit(&soldier)
+	w.AddObject(&soldier)
 	w.Play()
 }
 
@@ -110,9 +169,9 @@ func (w *World) Play() {
 				break
 			}
 			w.selection = nil
-			for _, unit := range w.units {
-				if unit.x == click.X && unit.y == click.Y {
-					w.selection = unit
+			for _, object := range w.objects {
+				if object.X() == click.X && object.Y() == click.Y {
+					w.selection = object
 				}
 			}
 		}
@@ -135,11 +194,16 @@ func (w *World) Play() {
 			w.selection = nil
 		}
 
-		if w.selection != nil {
-			if key == "w" { w.selection.TryMove( 0, -1) }
-			if key == "a" { w.selection.TryMove(-1,  0) }
-			if key == "s" { w.selection.TryMove( 0,  1) }
-			if key == "d" { w.selection.TryMove( 1,  0) }
+		if w.selection != nil && w.selection.PC() == true {
+
+			mover, ok := w.selection.(Moveable)
+
+			if ok {
+				if key == "w" { mover.TryMove( 0, -1, w) }
+				if key == "a" { mover.TryMove(-1,  0, w) }
+				if key == "s" { mover.TryMove( 0,  1, w) }
+				if key == "d" { mover.TryMove( 1,  0, w) }
+			}
 		}
 
 		w.Draw()
