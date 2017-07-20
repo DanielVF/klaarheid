@@ -42,7 +42,7 @@ function main() {
 		}
 	});
 
-	ipcMain.on("keydown", (event, key) => {
+	ipcMain.on("keydown", (event, msg) => {
 
 		let windobject = windows.get_windobject_from_event(event);
 
@@ -50,19 +50,19 @@ function main() {
 			return
 		}
 
-		let msg = {
+		let output = {
 			type: "key",
 			content: {
 				down: true,
 				uid: windobject.uid,
-				key: key
+				key: msg.key
 			}
 		};
 
-		exe.stdin.write(JSON.stringify(msg) + "\n");
+		exe.stdin.write(JSON.stringify(output) + "\n");
 	});
 
-	ipcMain.on("keyup", (event, key) => {
+	ipcMain.on("keyup", (event, msg) => {
 
 		let windobject = windows.get_windobject_from_event(event);
 
@@ -70,15 +70,57 @@ function main() {
 			return
 		}
 
-		let msg = {
+		let output = {
 			type: "key",
 			content: {
 				down: false,
 				uid: windobject.uid,
-				key: key
+				key: msg.key
 			}
 		};
 
-		exe.stdin.write(JSON.stringify(msg) + "\n");
+		exe.stdin.write(JSON.stringify(output) + "\n");
+	});
+
+	ipcMain.on("mousedown", (event, msg) => {
+
+		let windobject = windows.get_windobject_from_event(event);
+
+		if (windobject === undefined) {
+			return
+		}
+
+		let output = {
+			type: "mouse",
+			content: {
+				down: true,
+				uid: windobject.uid,
+				x: msg.x,
+				y: msg.y
+			}
+		}
+
+		exe.stdin.write(JSON.stringify(output) + "\n");
+	});
+
+	ipcMain.on("mouseup", (event, msg) => {
+
+		let windobject = windows.get_windobject_from_event(event);
+
+		if (windobject === undefined) {
+			return
+		}
+
+		let output = {
+			type: "mouse",
+			content: {
+				down: false,
+				uid: windobject.uid,
+				x: msg.x,
+				y: msg.y
+			}
+		}
+
+		exe.stdin.write(JSON.stringify(output) + "\n");
 	});
 }

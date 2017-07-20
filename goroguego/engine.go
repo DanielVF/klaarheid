@@ -97,14 +97,14 @@ func init() {
 
 func listener() {
 
-	// logfile, _ := os.Create("stdin.txt")
+	logfile, _ := os.Create("stdin.txt")
 
 	scanner := bufio.NewScanner(os.Stdin)
 
 	for {
 		scanner.Scan()
 
-		// logfile.WriteString(scanner.Text() + "\n")
+		logfile.WriteString(scanner.Text() + "\n")
 
 		var type_obj IncomingMsgType
 

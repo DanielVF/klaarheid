@@ -26,19 +26,19 @@ function make_renderer() {
 	};
 
 	renderer.init = (opts) => {
-		let x;
-		let y;
-		let id;
-		let html = `<table style="font-size: ${opts.fontpercent}%;">`;
 
 		renderer.width = opts.width;
 		renderer.height = opts.height;
 		renderer.uid = opts.uid;
 
-		for (y = 0; y < opts.height; y++) {
+		// Make the table...
+
+		let html = `<table style="font-size: ${opts.fontpercent}%;">`;
+
+		for (let y = 0; y < opts.height; y++) {
 			html += "<tr>";
-			for (x = 0; x < opts.width; x++) {
-				id = id_from_xy(x, y);
+			for (let x = 0; x < opts.width; x++) {
+				let id = id_from_xy(x, y);
 				html += `<td id="${id}" style="width: ${opts.boxwidth}; height: ${opts.boxheight};"></td>`;
 			}
 			html += "</tr>"
@@ -50,6 +50,9 @@ function make_renderer() {
 
 		renderer.resize(opts.width * opts.boxwidth, opts.height * opts.boxheight);
 
+		// Set the "ready" flag and then deal with any postponed items that were queued
+		// due to us not being ready earlier...
+
 		renderer.ready_to_flip = true;
 
 		for (let n = 0; n < renderer.postponed_actions.length; n++) {
@@ -57,13 +60,29 @@ function make_renderer() {
 		}
 		renderer.postponed_actions = [];
 
+		// Input handlers...
+
 		document.addEventListener("keydown", (evt) => {
-			ipcRenderer.send("keydown", evt.key)
+			ipcRenderer.send("keydown", {key: evt.key});
 		});
 
 		document.addEventListener("keyup", (evt) => {
-			ipcRenderer.send("keyup", evt.key)
+			ipcRenderer.send("keyup", {key: evt.key});
 		});
+
+		for (let x = 0; x < renderer.width; x++) {
+			for (let y = 0; y < renderer.height; y++) {
+				let id = id_from_xy(x, y);
+				let element = document.getElementById(id)
+				element.addEventListener("mousedown", (evt) => {
+					evt.preventDefault();								// Prevent selecting text with the mouse
+					ipcRenderer.send("mousedown", {x: x, y: y});		// x and y work despite closures because we use "let" in the loops
+				});
+				element.addEventListener("mouseup", (evt) => {
+					ipcRenderer.send("mouseup", {x: x, y: y});			// Works despite closures because we use "let" in the loops
+				});
+			}
+		}
 	};
 
 	renderer.flip = (opts) => {

@@ -3,14 +3,7 @@
 const electron = require("electron");
 
 function object_to_string(o) {
-    let msg = "{\n"
-    let keys = Object.keys(o);
-    for (let n = 0; n < keys.length; n++) {
-        let key = keys[n];
-        let val = o[key];
-        msg += `   ${key}: ${typeof(val)}` + "\n"
-    }
-    msg += "}"
+    let msg = JSON.stringify(o);
     return msg;
 }
 
