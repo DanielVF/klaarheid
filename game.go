@@ -25,6 +25,7 @@ type Object struct {
 	Weapon		string		`json:"weapon"`
 	Faction		string		`json:"faction"`
 	HP			int			`json:"hp"`
+	Speed		int			`json:"speed"`
 	X			int
 	Y			int
 	world		*World
@@ -91,7 +92,7 @@ func (w *World) Draw() {
 	w.window.Flip()
 }
 
-func (w *World) AddUnit(object *Object) {
+func (w *World) AddObject(object *Object) {
 	w.objects = append(w.objects, object)
 }
 
@@ -104,8 +105,9 @@ func (w *World) MakeLevel() {
 	w.objects = nil
 	w.selection = nil
 
-	w.objects = append(w.objects, object_from_name("soldier", w, 1, 1))
-	w.objects = append(w.objects, object_from_name("soldier", w, 2, 2))
+	w.AddObject(object_from_name("soldier", w, 1, 1))
+	w.AddObject(object_from_name("soldier", w, 2, 2))
+	w.AddObject(object_from_name("imp", w, WORLD_WIDTH - 2, WORLD_HEIGHT - 2))
 }
 
 func (w *World) Play() {
@@ -145,6 +147,10 @@ func (w *World) Play() {
 			w.selection = nil
 		}
 
+		if key == "Tab" {
+			w.Tab()
+		}
+
 		if w.selection != nil && w.selection.Faction == "good" && key != "" {
 			if key == "w" { w.selection.TryMove( 0, -1) }
 			if key == "a" { w.selection.TryMove(-1,  0) }
@@ -161,6 +167,46 @@ func (w *World) Play() {
 func (w *World) WriteSelection(s string) {
 	for x := 0; x < len(s); x++ {
 		w.window.Set(x, w.height + 1, s[x], 'w')
+	}
+}
+
+func (w *World) Tab() {
+
+	if w.selection == nil || w.selection.Faction != "good" {
+		for _, object := range w.objects {
+			if object.Faction == "good" {
+				w.selection = object
+				return
+			}
+		}
+		return
+	}
+
+	index := -1
+
+	for i, object := range w.objects {
+		if object == w.selection {
+			index = i
+			break
+		}
+	}
+
+	if index == -1 {
+		return
+	}
+
+	for _, object := range w.objects[index + 1:] {
+		if object.Faction == "good" {
+			w.selection = object
+			return
+		}
+	}
+
+	for _, object := range w.objects[:index] {
+		if object.Faction == "good" {
+			w.selection = object
+			return
+		}
 	}
 }
 
