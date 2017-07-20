@@ -9,6 +9,7 @@ const readline = require("readline");
 const windows = require("./modules/windows");
 
 electron.app.on("ready", () => {
+	menu_build();
 	main();
 });
 
@@ -137,4 +138,26 @@ function main() {
 
 		exe.stdin.write(JSON.stringify(output) + "\n");
 	});
+}
+
+function menu_build() {
+	const template = [
+		{
+			label: "Menu",
+			submenu: [
+				{
+					role: "quit"
+				},
+				{
+					type: "separator"
+				},
+				{
+					role: "toggledevtools"
+				}
+			]
+		}
+	];
+
+	const menu = electron.Menu.buildFromTemplate(template);
+	electron.Menu.setApplicationMenu(menu);
 }
