@@ -215,7 +215,7 @@ func (w *World) Tab() {
 func main() {
 
 	world := World{
-		window: electron.NewWindow("World", "renderer.html", WORLD_WIDTH, WORLD_HEIGHT + 2, 15, 20, 100, true),
+		window: electron.NewWindow("World", "grid.html", WORLD_WIDTH, WORLD_HEIGHT + 2, 15, 20, 100, true),
 		width: WORLD_WIDTH,
 		height: WORLD_HEIGHT,
 	}
