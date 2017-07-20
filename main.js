@@ -20,7 +20,7 @@ function main() {
 
 	// main() contains stuff that deals with direct communication with the go program.
 
-	let exe = child_process.spawn("test.exe");
+	let exe = child_process.spawn("game.exe");
 
 	let scanner = readline.createInterface({
 		input: exe.stdout,
