@@ -87,6 +87,13 @@ type FlipMsg struct {
 
 // ----------------------------------------------------------
 
+type AlertMsg struct {
+	Command			string					`json:"command"`
+	Content			string					`json:"content"`
+}
+
+// ----------------------------------------------------------
+
 type IncomingMsgType struct {
 	Type			string					`json:"type"`
 }
@@ -313,4 +320,20 @@ func NewWindow(name, page string, width, height, boxwidth, boxheight, fontpercen
 	fmt.Printf("%s\n", string(s))
 
 	return &w
+}
+
+func Alertf(format_string string, args ...interface{}) {
+
+	msg := fmt.Sprintf(format_string, args...)
+
+	m := AlertMsg{
+		Command: "alert",
+		Content: msg,
+	}
+
+	s, err := json.Marshal(m)
+	if err != nil {
+		panic("Failed to Marshal")
+	}
+	fmt.Printf("%s\n", string(s))
 }

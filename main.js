@@ -40,6 +40,20 @@ function main() {
 		if (j.command === "flip") {
 			windows.flip(j.content);
 		}
+
+		if (j.command === "alert") {
+			alert(j.content);
+		}
+	});
+
+	let stderr_scanner = readline.createInterface({
+		input: exe.stderr,
+		output: undefined,
+		terminal: false
+	});
+
+	stderr_scanner.on("line", (line) => {
+		alert(line)
 	});
 
 	ipcMain.on("keydown", (event, msg) => {
