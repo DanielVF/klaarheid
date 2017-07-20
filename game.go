@@ -1,52 +1,58 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	// "os"
 	"time"
 	engine "./goroguego"
 )
-
-// var logfile, _ = os.Create("gamelog.txt")
 
 const (
 	WORLD_WIDTH = 50
 	WORLD_HEIGHT = 28
 )
 
-type Unit struct {
+// var logfile, _ = os.Create("gamelog.txt")
+
+// -------------------------------------------------------------------
+
+type Object struct {
+	Class		string		`json:"class"`
+	Char		string		`json:"char"`
+	Colour		string		`json:"colour"`
+	Weapon		string		`json:"weapon"`
+	Faction		string		`json:"faction"`
+	HP			int			`json:"hp"`
+	X			int
+	Y			int
 	world		*World
-	char		byte
-	colour		byte
-	class		string
-	weapon		string
-	x			int
-	y			int
-	hp			int
-	pc			bool
 }
 
-func (u *Unit) String() string {
-	return fmt.Sprintf("- %s (%dhp), %s", u.class, u.hp, u.weapon)
+func (o *Object) SelectionString() string {
+	return fmt.Sprintf("- %s (%dhp), %s", o.Class, o.HP, o.Weapon)
 }
 
-func (u *Unit) TryMove(x, y int) {
+func (u *Object) TryMove(x, y int) {
 
-	tar_x := u.x + x
-	tar_y := u.y + y
+	tar_x := u.X + x
+	tar_y := u.Y + y
 
 	if u.world.InBounds(tar_x, tar_y) {
-		u.x = tar_x
-		u.y = tar_y
+		u.X = tar_x
+		u.Y = tar_y
 	}
 }
+
+// -------------------------------------------------------------------
 
 type World struct {
 	window		*engine.Window
 	width		int
 	height		int
-	selection	*Unit
-	units		[]*Unit
+	selection	*Object
+	objects		[]*Object
 }
 
 func (w *World) InBounds(x, y int) bool {
@@ -61,41 +67,36 @@ func (w *World) Draw() {
 
 	w.window.Clear()
 
-	for _, unit := range w.units {
-		w.window.Set(unit.x, unit.y, unit.char, unit.colour)
-		if unit == w.selection {
-			w.window.SetHighlight(unit.x, unit.y)
+	for _, object := range w.objects {
+		w.window.Set(object.X, object.Y, object.Char[0], object.Colour[0])		// char and colour are strings here, but the engine wants bytes
+		if object == w.selection {
+			w.window.SetHighlight(object.X, object.Y)
 		}
 	}
 
 	if (w.selection != nil) {
-		s := w.selection.String()
+		s := w.selection.SelectionString()
 		w.WriteSelection(s)
 	}
 
 	w.window.Flip()
 }
 
-func (w *World) AddUnit(unit *Unit) {
-	w.units = append(w.units, unit)
+func (w *World) AddUnit(object *Object) {
+	w.objects = append(w.objects, object)
 }
 
-func (w *World) Start() {
-
-	soldier := Unit{
-		world: w,
-		char: '@',
-		colour: 'g',
-		class: "soldier",
-		weapon: "rifle",
-		x: 5,
-		y: 5,
-		hp: 4,
-		pc: true,
-	}
-
-	w.AddUnit(&soldier)
+func (w *World) Game() {
+	w.MakeLevel()
 	w.Play()
+}
+
+func (w *World) MakeLevel() {
+	w.objects = nil
+	w.selection = nil
+
+	soldier := object_from_name("soldier", w)
+	w.objects = append(w.objects, soldier)
 }
 
 func (w *World) Play() {
@@ -110,9 +111,9 @@ func (w *World) Play() {
 				break
 			}
 			w.selection = nil
-			for _, unit := range w.units {
-				if unit.x == click.X && unit.y == click.Y {
-					w.selection = unit
+			for _, object := range w.objects {
+				if object.X == click.X && object.Y == click.Y {
+					w.selection = object
 				}
 			}
 		}
@@ -135,7 +136,7 @@ func (w *World) Play() {
 			w.selection = nil
 		}
 
-		if w.selection != nil {
+		if w.selection != nil && w.selection.Faction == "good" && key != "" {
 			if key == "w" { w.selection.TryMove( 0, -1) }
 			if key == "a" { w.selection.TryMove(-1,  0) }
 			if key == "s" { w.selection.TryMove( 0,  1) }
@@ -154,6 +155,8 @@ func (w *World) WriteSelection(s string) {
 	}
 }
 
+// -------------------------------------------------------------------
+
 func main() {
 
 	world := World{
@@ -162,5 +165,29 @@ func main() {
 		height: WORLD_HEIGHT,
 	}
 
-	world.Start()
+	world.Game()
+}
+
+// -------------------------------------------------------------------
+
+func object_from_name(name string, world *World) *Object {
+	filename := fmt.Sprintf("classes/%s.json", name)
+
+	j, err := ioutil.ReadFile(filename)
+	if err != nil {
+		engine.Alertf(err.Error())
+	}
+
+	var new_object Object
+
+	err = json.Unmarshal(j, &new_object)
+	if err != nil {
+		engine.Alertf(err.Error())
+	}
+
+	new_object.X = 5		// FIXME
+	new_object.Y = 5
+
+	new_object.world = world
+	return &new_object
 }

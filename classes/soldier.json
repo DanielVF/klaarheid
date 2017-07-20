@@ -1,0 +1,8 @@
+{
+	"class": "soldier",
+	"char": "@",
+	"colour": "g",
+	"weapon": "rifle",
+	"faction": "good",
+	"hp": 4
+}
