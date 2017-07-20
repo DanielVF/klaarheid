@@ -39,7 +39,7 @@ func (u *Object) TryMove(x, y int) {
 	tar_x := u.X + x
 	tar_y := u.Y + y
 
-	if u.world.InBounds(tar_x, tar_y) {
+	if u.world.InBounds(tar_x, tar_y) && u.world.Blocked(tar_x, tar_y) == false {
 		u.X = tar_x
 		u.Y = tar_y
 	}
@@ -61,6 +61,15 @@ func (w *World) InBounds(x, y int) bool {
 	} else {
 		return false
 	}
+}
+
+func (w *World) Blocked(x, y int) bool {
+	for _, object := range w.objects {
+		if object.X == x && object.Y == y {
+			return true
+		}
+	}
+	return false
 }
 
 func (w *World) Draw() {
@@ -95,8 +104,8 @@ func (w *World) MakeLevel() {
 	w.objects = nil
 	w.selection = nil
 
-	soldier := object_from_name("soldier", w)
-	w.objects = append(w.objects, soldier)
+	w.objects = append(w.objects, object_from_name("soldier", w, 1, 1))
+	w.objects = append(w.objects, object_from_name("soldier", w, 2, 2))
 }
 
 func (w *World) Play() {
@@ -170,7 +179,7 @@ func main() {
 
 // -------------------------------------------------------------------
 
-func object_from_name(name string, world *World) *Object {
+func object_from_name(name string, world *World, x, y int) *Object {
 	filename := fmt.Sprintf("classes/%s.json", name)
 
 	j, err := ioutil.ReadFile(filename)
@@ -185,8 +194,8 @@ func object_from_name(name string, world *World) *Object {
 		engine.Alertf(err.Error())
 	}
 
-	new_object.X = 5		// FIXME
-	new_object.Y = 5
+	new_object.X = x
+	new_object.Y = y
 
 	new_object.world = world
 	return &new_object
