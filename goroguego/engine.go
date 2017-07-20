@@ -14,6 +14,8 @@ const (
 var keypress_chan = make(chan string)
 var key_query_chan = make(chan chan string)
 
+// var logfile, _ = os.Create("logfile.txt")
+
 // ----------------------------------------------------------
 
 type id_object struct {
@@ -29,50 +31,61 @@ var id_maker id_object
 
 // ----------------------------------------------------------
 
+type ByteSlice []byte		// Define this so that such a thing can have its own MarshalJSON() method
+
+func (b ByteSlice) MarshalJSON() ([]byte, error) {
+	str := string(b)
+	return json.Marshal(str)
+}
+
+// ----------------------------------------------------------
+
+type Point struct {
+	X				int					`json:"x"`
+	Y				int					`json:"y"`
+}
+
+// ----------------------------------------------------------
+
 type Window struct {
-	Uid				int
-	Width			int
-	Height			int
-	Chars			[]byte
-	Colours			[]byte
+	Uid				int					`json:"uid"`
+	Width			int					`json:"width"`
+	Height			int					`json:"height"`
+	Chars			ByteSlice			`json:"chars"`
+	Colours			ByteSlice			`json:"colours"`
+	Highlight		Point				`json:"highlight"`
 }
 
 // ----------------------------------------------------------
 
 type NewMsgContent struct {
-	Name			string			`json:"name"`
-	Page			string			`json:"page"`
-	Uid				int				`json:"uid"`
-	Width			int				`json:"width"`
-	Height			int				`json:"height"`
-	BoxWidth		int				`json:"boxwidth"`
-	BoxHeight		int				`json:"boxheight"`
-	FontPercent		int				`json:"fontpercent"`
-	Resizable		bool			`json:"resizable"`
+	Name			string				`json:"name"`
+	Page			string				`json:"page"`
+	Uid				int					`json:"uid"`
+	Width			int					`json:"width"`
+	Height			int					`json:"height"`
+	BoxWidth		int					`json:"boxwidth"`
+	BoxHeight		int					`json:"boxheight"`
+	FontPercent		int					`json:"fontpercent"`
+	Resizable		bool				`json:"resizable"`
 }
 
 type NewMsg struct {
-	Command			string			`json:"command"`
-	Content			NewMsgContent	`json:"content"`
+	Command			string				`json:"command"`
+	Content			NewMsgContent		`json:"content"`
 }
 
 // ----------------------------------------------------------
 
-type FlipMsgContent struct {
-	Uid				int				`json:"uid"`
-	Chars			string			`json:"chars"`
-	Colours			string			`json:"colours"`
-}
-
 type FlipMsg struct {
-	Command			string			`json:"command"`
-	Content			FlipMsgContent	`json:"content"`
+	Command			string				`json:"command"`
+	Content			*Window				`json:"content"`
 }
 
 // ----------------------------------------------------------
 
 type IncomingMsgType struct {
-	Type			string			`json:"type"`
+	Type			string				`json:"type"`
 }
 
 // ----------------------------------------------------------
@@ -97,14 +110,12 @@ func init() {
 
 func listener() {
 
-	logfile, _ := os.Create("stdin.txt")
-
 	scanner := bufio.NewScanner(os.Stdin)
 
 	for {
 		scanner.Scan()
 
-		logfile.WriteString(scanner.Text() + "\n")
+		// logfile.WriteString(scanner.Text() + "\n")
 
 		var type_obj IncomingMsgType
 
@@ -167,26 +178,30 @@ func (w *Window) Set(x, y int, char, colour byte) {
 	w.Colours[index] = colour
 }
 
+func (w *Window) SetHighlight(x, y int) {
+	w.Highlight = Point{x, y}
+}
+
 func (w *Window) Clear() {
 	for n := 0; n < len(w.Chars); n++ {
 		w.Chars[n] = ' '
 		w.Colours[n] = CLEAR_COLOUR
 	}
+	w.Highlight = Point{-1, -1}
 }
 
 func (w *Window) Flip() {
 
-	m := FlipMsg{Command: "flip", Content: FlipMsgContent{
-			Uid: w.Uid,
-			Chars: string(w.Chars),
-			Colours: string(w.Colours),
-		},
+	m := FlipMsg{
+		Command: "flip",
+		Content: w,
 	}
 
 	s, err := json.Marshal(m)
 	if err != nil {
 		panic("Failed to Marshal")
 	}
+
 	fmt.Printf("%s\n", string(s))
 }
 
@@ -198,6 +213,8 @@ func NewWindow(name, page string, width, height, boxwidth, boxheight, fontpercen
 
 	w.Chars = make([]byte, width * height)
 	w.Colours = make([]byte, width * height)
+
+	w.Highlight = Point{-1, -1}
 
 	// Create the message to send to the server...
 

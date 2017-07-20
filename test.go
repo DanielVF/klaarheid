@@ -19,6 +19,7 @@ func main() {
 
 	w.Clear()
 	w.Set(player_x, player_y, '@', 'g')
+	w.SetHighlight(player_x, player_y)
 	w.Flip()
 
 	for {
@@ -47,6 +48,7 @@ func main() {
 
 		w.Clear()
 		w.Set(player_x, player_y, '@', 'g')
+		w.SetHighlight(player_x, player_y)
 		w.Flip()
 	}
 }

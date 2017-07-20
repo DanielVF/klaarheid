@@ -94,6 +94,7 @@ function make_renderer() {
 
 		let charstring = opts.chars;
 		let colourstring = opts.colours;
+		let highlight = opts.highlight;
 
 		for (let x = 0; x < renderer.width; x++) {
 			for (let y = 0; y < renderer.height; y++) {
@@ -105,7 +106,12 @@ function make_renderer() {
 					let colour_key = colourstring.charAt(index);
 					let colour = colour_dict[colour_key];
 					if (colour) {
-						element.style.color = colour;
+						element.style["color"] = colour;
+					}
+					if (x === highlight.x && y === highlight.y) {
+						element.style["background-color"] = "#333333";
+					} else {
+						element.style["background-color"] = "black";
 					}
 				}
 			}
