@@ -29,21 +29,22 @@ type Object struct {
 	Speed		int			`json:"speed"`
 	X			int
 	Y			int
-	world		*World
+
+	World		*World
 }
 
 func (o *Object) SelectionString() string {
 	return fmt.Sprintf("- %s (%dhp), %s", o.Class, o.HP, o.Weapon)
 }
 
-func (u *Object) TryMove(x, y int) {
+func (o *Object) TryMove(x, y int) {
 
-	tar_x := u.X + x
-	tar_y := u.Y + y
+	tar_x := o.X + x
+	tar_y := o.Y + y
 
-	if u.world.InBounds(tar_x, tar_y) && u.world.Blocked(tar_x, tar_y) == false {
-		u.X = tar_x
-		u.Y = tar_y
+	if o.World.InBounds(tar_x, tar_y) && o.World.Blocked(tar_x, tar_y) == false {
+		o.X = tar_x
+		o.Y = tar_y
 	}
 }
 
@@ -99,7 +100,7 @@ func (w *World) AddObject(object *Object) {
 
 func (w *World) Game() {
 	w.MakeLevel()
-	w.Play()
+	w.PlayLevel()
 }
 
 func (w *World) MakeLevel() {
@@ -111,8 +112,7 @@ func (w *World) MakeLevel() {
 	w.AddObject(object_from_name("imp", w, WORLD_WIDTH - 2, WORLD_HEIGHT - 2))
 }
 
-func (w *World) Play() {
-
+func (w *World) PlayerTurn() {
 	for {
 
 		// Deal with mouse events...
@@ -162,6 +162,18 @@ func (w *World) Play() {
 		w.Draw()
 
 		time.Sleep(20 * time.Millisecond)
+	}
+}
+
+func (w *World) ComputerTurn() {
+	return
+}
+
+
+func (w *World) PlayLevel() {
+	for {
+		w.PlayerTurn()
+		w.ComputerTurn()
 	}
 }
 
@@ -244,6 +256,6 @@ func object_from_name(name string, world *World, x, y int) *Object {
 	new_object.X = x
 	new_object.Y = y
 
-	new_object.world = world
+	new_object.World = world
 	return &new_object
 }
