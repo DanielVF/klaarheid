@@ -48,6 +48,11 @@ type Point struct {
 	Y				int						`json:"y"`
 }
 
+type Spot struct {
+	Char			byte
+	Colour			byte
+}
+
 // ----------------------------------------------------------
 
 type Window struct {
@@ -258,6 +263,20 @@ func (w *Window) Set(x, y int, char, colour byte) {
 	}
 	w.Chars[index] = char
 	w.Colours[index] = colour
+}
+
+func (w *Window) SetPointSpot(point Point, spot Spot) {
+	w.Set(point.X, point.Y, spot.Char, spot.Colour)
+}
+
+func (w *Window) Get(x, y int) Spot {
+	index := y * w.Width + x
+	if index < 0 || index >= len(w.Chars) || x < 0 || x >= w.Width || y < 0 || y >= w.Height {
+		return Spot{Char: ' ', Colour: CLEAR_COLOUR}
+	}
+	char := w.Chars[index]
+	colour := w.Colours[index]
+	return Spot{Char: char, Colour: colour}
 }
 
 func (w *Window) SetHighlight(x, y int) {
