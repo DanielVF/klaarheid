@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 )
 
 const (
@@ -144,6 +145,10 @@ func listener() {
 
 	for {
 		scanner.Scan()
+
+		if strings.TrimSpace(scanner.Text()) == "" {
+			continue
+		}
 
 		// logfile.WriteString(scanner.Text() + "\n")
 

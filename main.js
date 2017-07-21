@@ -9,21 +9,59 @@ const readline = require("readline");
 const windows = require("./modules/windows");
 
 const STDERR_LOG_WINDOW_ID = -1
+const GAME_APP = "game.exe"
+
 
 electron.app.on("ready", () => {
 	menu_build();
 	main();
 });
 
-electron.app.on("window-all-closed", () => {
-	electron.app.quit();
-});
 
 function main() {
 
+	// Create our log window..................................................
+
+	windows.new_window({
+		uid: STDERR_LOG_WINDOW_ID,
+		page: "log.html",
+		name: "Console",
+		width: 600,
+		height: 400,
+		resizable: true,
+		nomenu: true,
+		minorwindow: true,
+	});
+
+	windows.hide(STDERR_LOG_WINDOW_ID);
+
+	function write_to_log(msg) {
+		if (msg instanceof Error) {
+			msg = msg.toString();
+		}
+		if (typeof(msg) === "object") {
+			msg = JSON.stringify(msg, null, "  ");
+		}
+		msg = msg.toString();
+		windows.update({
+			uid: STDERR_LOG_WINDOW_ID,
+			msg: msg + "\n",
+		});
+	}
+
 	// Communications with the compiled app....................................
 
-	let exe = child_process.spawn("game.exe");
+	let exe = child_process.spawn(GAME_APP);
+
+	write_to_log("Connected to " + GAME_APP);
+
+	function write_to_exe(msg) {
+		try {
+			exe.stdin.write(msg + "\n");
+		} catch (e) {
+			write_to_log(e);
+		}
+	}
 
 	let scanner = readline.createInterface({
 		input: exe.stdout,
@@ -36,9 +74,8 @@ function main() {
 
 		if (j.command === "new") {
 			windows.new_window(j.content);
+			windows.quit_now_possible();			// Tell windows module that quitting the app is allowed (i.e. if all windows get closed).
 		}
-
-		// Other messages can fail if the window isn't ready...
 
 		if (j.command === "update") {
 			windows.update(j.content);
@@ -49,15 +86,7 @@ function main() {
 		}
 	});
 
-	windows.new_window({
-		uid: STDERR_LOG_WINDOW_ID,
-		page: "log.html",
-		name: "Stderr",
-		width: 500,
-		height: 500,
-		resizable: true,
-		nomenu: true
-	});
+	// Stderr messages from the compiled app...................................
 
 	let stderr_scanner = readline.createInterface({
 		input: exe.stderr,
@@ -66,10 +95,7 @@ function main() {
 	});
 
 	stderr_scanner.on("line", (line) => {
-		windows.update({
-			uid: STDERR_LOG_WINDOW_ID,
-			msg: line + "\n"
-		});
+		write_to_log(line)
 	});
 
 	// Messages from the renderer..............................................
@@ -91,7 +117,7 @@ function main() {
 			}
 		};
 
-		exe.stdin.write(JSON.stringify(output) + "\n");
+		write_to_exe(JSON.stringify(output));
 	});
 
 	ipcMain.on("keyup", (event, msg) => {
@@ -111,7 +137,7 @@ function main() {
 			}
 		};
 
-		exe.stdin.write(JSON.stringify(output) + "\n");
+		write_to_exe(JSON.stringify(output));
 	});
 
 	ipcMain.on("mousedown", (event, msg) => {
@@ -132,7 +158,7 @@ function main() {
 			}
 		}
 
-		exe.stdin.write(JSON.stringify(output) + "\n");
+		write_to_exe(JSON.stringify(output));
 	});
 
 	ipcMain.on("mouseup", (event, msg) => {
@@ -153,7 +179,7 @@ function main() {
 			}
 		}
 
-		exe.stdin.write(JSON.stringify(output) + "\n");
+		write_to_exe(JSON.stringify(output));
 	});
 
 	ipcMain.on("request_resize", (event, opts) => {
@@ -180,6 +206,10 @@ function menu_build() {
 				},
 				{
 					role: "toggledevtools"
+				},
+				{
+					label: "Show Console",
+					click: () => windows.show(STDERR_LOG_WINDOW_ID),
 				}
 			]
 		}

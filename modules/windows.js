@@ -11,6 +11,8 @@ const url = require("url");
 
 let windobjects = Object.create(null);		// dict: uid --> windobject
 
+let quit_possible = false;					// call quit_now_possible() to set this true and allow the module to quit the app
+
 function get_windobject_from_event(event) {
 	for (let uid in windobjects) {
 		let val = windobjects[uid];
@@ -57,13 +59,27 @@ function new_window(config) {
 		slashes: true
 	}));
 
-	win.on("closed", () => {
-		delete windobjects[config.uid];
-	});
-
 	if (config.nomenu === true) {
 		win.setMenu(null);
 	}
+
+	// Minor windows get hidden rather than closed.
+
+	if (config.minorwindow === true) {
+		win.on("close", (evt) => {
+			evt.preventDefault();
+			win.hide();
+		});
+	}
+
+	win.on("closed", () => {
+		delete windobjects[config.uid];
+		quit_if_all_windows_are_hidden();
+	});
+
+	win.on("hide", () => {
+		quit_if_all_windows_are_hidden();
+	});
 
 	windobjects[config.uid] = {
 		uid: config.uid,
@@ -114,9 +130,53 @@ function handle_ready(windobject, opts) {
 	windobject.queue = [];
 }
 
+function hide(uid) {
+	let windobject = windobjects[uid];
+	if (windobject === undefined) {
+		return;
+	}
+	windobject.win.hide()
+}
+
+function show(uid) {
+	let windobject = windobjects[uid];
+	if (windobject === undefined) {
+		return;
+	}
+	windobject.win.show()
+}
+
+function quit_if_all_windows_are_hidden() {
+
+	if (!quit_possible) {
+		return;
+	}
+
+	let keys = Object.keys(windobjects);
+
+	for (let n = 0; n < keys.length; n++) {
+
+		let key = keys[n];
+
+		let windobject = windobjects[key];
+
+		if (windobject.win.isVisible()) {
+			return;
+		}
+	}
+
+	electron.app.exit();		// Why doesn't quit work?
+}
+
+function quit_now_possible() {
+	quit_possible = true;
+}
 
 exports.get_windobject_from_event = get_windobject_from_event;
+exports.resize = resize;
 exports.new_window = new_window;
 exports.update = update;
 exports.handle_ready = handle_ready;
-exports.resize = resize;
+exports.hide = hide;
+exports.show = show;
+exports.quit_now_possible = quit_now_possible;

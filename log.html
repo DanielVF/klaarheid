@@ -2,19 +2,26 @@
 <head><title></title>
 <style>
 	body {
-		margin: 0;
+		margin: 0.5em;
 		background-color: black;
 		color: white;
-		font-family: "Courier";
+	}
+	a {
+		color: orange;
 	}
 </style>
 </head>
 <body>
 
+<h2>[ <a href="#" onclick="clear_all(); return false;">clear all</a> ]</h2>
+
+<hr>
+
 <pre id="log"></pre>
 
 <script>
 	"use strict";
+
 	const ipcRenderer = require("electron").ipcRenderer;
 
 	ipcRenderer.on("update", (event, opts) => {
@@ -23,6 +30,11 @@
 	});
 
 	ipcRenderer.send("ready", null);
+
+	function clear_all() {
+		let pre = document.getElementById("log")
+		pre.innerHTML = ""
+	}
 </script>
 
 </body>
