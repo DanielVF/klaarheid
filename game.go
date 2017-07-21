@@ -20,17 +20,28 @@ const (
 // -------------------------------------------------------------------
 
 type Object struct {
-	Class		string		`json:"class"`
-	Char		string		`json:"char"`
-	Colour		string		`json:"colour"`
-	Weapon		string		`json:"weapon"`
-	Faction		string		`json:"faction"`
-	HP			int			`json:"hp"`
-	Speed		int			`json:"speed"`
-	X			int
-	Y			int
 
-	World		*World
+	// Things we get from the class json...
+
+	Class			string		`json:"class"`
+	Char			string		`json:"char"`
+	Colour			string		`json:"colour"`
+	Weapon			string		`json:"weapon"`
+	Faction			string		`json:"faction"`
+	HP				int			`json:"hp"`
+	Moves			int			`json:"moves"`
+	Actions			int			`json:"actions"`
+
+	// Things that must be set at object creation...
+
+	World			*World
+	X				int
+	Y				int
+
+	// Other...
+
+	MovesLeft		int
+	ActionsLeft		int
 }
 
 func (o *Object) SelectionString() string {

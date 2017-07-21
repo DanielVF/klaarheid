@@ -5,5 +5,6 @@
 	"weapon": "poker",
 	"faction": "evil",
 	"hp": 4,
-	"speed": 10
+	"moves": 10,
+	"actions": 1
 }

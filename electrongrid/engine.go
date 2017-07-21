@@ -294,7 +294,7 @@ func (w *Window) Clear() {
 func (w *Window) Flip() {
 
 	m := FlipMsg{
-		Command: "flip",
+		Command: "update",
 		Content: w,
 	}
 

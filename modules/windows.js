@@ -29,12 +29,23 @@ function resize(windobject, opts) {
 
 function new_window(config) {
 
+	assert(config.uid !== undefined);
 	assert(windobjects[config.uid] === undefined);
+
+	let win_pixel_width = config.width;
+	let win_pixel_height = config.height;
+
+	// The config may or may not specify width and height in terms of a grid of boxes, with each box taking up a certain size...
+
+	if (config.boxwidth !== undefined && config.boxheight !== undefined) {
+		win_pixel_width *= config.boxwidth;
+		win_pixel_height *= config.boxheight;
+	}
 
 	let win = new electron.BrowserWindow({
 		title: config.name,
-		width: config.width * config.boxwidth,
-		height: config.height * config.boxheight,
+		width: win_pixel_width,
+		height: win_pixel_height,
 		backgroundColor: "#000000",
 		useContentSize: true,
 		resizable: config.resizable
@@ -50,6 +61,10 @@ function new_window(config) {
 		delete windobjects[config.uid];
 	});
 
+	if (config.nomenu === true) {
+		win.setMenu(null);
+	}
+
 	windobjects[config.uid] = {
 		uid: config.uid,
 		win: win,
@@ -63,9 +78,9 @@ function new_window(config) {
 	};
 };
 
-function flip(content) {
+function update(content) {
 	let windobject = windobjects[content.uid];
-	send_or_queue(windobject, "flip", content);
+	send_or_queue(windobject, "update", content);
 }
 
 function send_or_queue(windobject, channel, msg) {
@@ -102,6 +117,6 @@ function handle_ready(windobject, opts) {
 
 exports.get_windobject_from_event = get_windobject_from_event;
 exports.new_window = new_window;
-exports.flip = flip;
+exports.update = update;
 exports.handle_ready = handle_ready;
 exports.resize = resize;

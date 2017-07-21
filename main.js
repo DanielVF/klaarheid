@@ -8,6 +8,8 @@ const ipcMain = require("electron").ipcMain;
 const readline = require("readline");
 const windows = require("./modules/windows");
 
+const STDERR_LOG_WINDOW_ID = -1
+
 electron.app.on("ready", () => {
 	menu_build();
 	main();
@@ -38,13 +40,23 @@ function main() {
 
 		// Other messages can fail if the window isn't ready...
 
-		if (j.command === "flip") {
-			windows.flip(j.content);
+		if (j.command === "update") {
+			windows.update(j.content);
 		}
 
 		if (j.command === "alert") {
 			alert(j.content);
 		}
+	});
+
+	windows.new_window({
+		uid: STDERR_LOG_WINDOW_ID,
+		page: "log.html",
+		name: "Stderr",
+		width: 500,
+		height: 500,
+		resizable: true,
+		nomenu: true
 	});
 
 	let stderr_scanner = readline.createInterface({
@@ -54,7 +66,10 @@ function main() {
 	});
 
 	stderr_scanner.on("line", (line) => {
-		alert(line)
+		windows.update({
+			uid: STDERR_LOG_WINDOW_ID,
+			msg: line + "\n"
+		});
 	});
 
 	// Messages from the renderer..............................................

@@ -1,0 +1,29 @@
+<html>
+<head><title></title>
+<style>
+	body {
+		margin: 0;
+		background-color: black;
+		color: white;
+		font-family: "Courier";
+	}
+</style>
+</head>
+<body>
+
+<pre id="log"></pre>
+
+<script>
+	"use strict";
+	const ipcRenderer = require("electron").ipcRenderer;
+
+	ipcRenderer.on("update", (event, opts) => {
+		let pre = document.getElementById("log")
+		pre.innerHTML += opts.msg
+	});
+
+	ipcRenderer.send("ready", null);
+</script>
+
+</body>
+</html>
