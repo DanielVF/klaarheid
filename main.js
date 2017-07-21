@@ -19,7 +19,7 @@ electron.app.on("window-all-closed", () => {
 
 function main() {
 
-	// main() contains stuff that deals with direct communication with the go program.
+	// Communications with the compiled app....................................
 
 	let exe = child_process.spawn("game.exe");
 
@@ -56,6 +56,8 @@ function main() {
 	stderr_scanner.on("line", (line) => {
 		alert(line)
 	});
+
+	// Messages from the renderer..............................................
 
 	ipcMain.on("keydown", (event, msg) => {
 
@@ -137,6 +139,16 @@ function main() {
 		}
 
 		exe.stdin.write(JSON.stringify(output) + "\n");
+	});
+
+	ipcMain.on("request_resize", (event, opts) => {
+		let windobject = windows.get_windobject_from_event(event);
+		windows.resize(windobject, opts);
+	});
+
+	ipcMain.on("ready", (event, opts) => {
+		let windobject = windows.get_windobject_from_event(event);
+		windows.handle_ready(windobject, opts);
 	});
 }
 

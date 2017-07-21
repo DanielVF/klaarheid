@@ -15,9 +15,13 @@
 		padding: 0;
 		cursor: default;
 	}
+	td:hover {
+		color: white !important;
+	}
 </style>
 </head>
 <body>
+
 <script>
 	"use strict";
 
@@ -68,6 +72,8 @@
 			html += "</table>"
 
 			document.getElementsByTagName("body")[0].innerHTML = html;
+
+			// Although the window is probably already the correct size, do this anyway...
 
 			renderer.resize(opts.width * opts.boxwidth, opts.height * opts.boxheight);
 
@@ -144,7 +150,7 @@
 				xpixels: xpixels,
 				ypixels: ypixels,
 			};
-			ipcRenderer.send("resize", msg);
+			ipcRenderer.send("request_resize", msg);
 		};
 
 		return renderer;
