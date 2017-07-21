@@ -4,8 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	// "os"
 	"time"
+
+	// effects "./effects"
 	electron "./electrongrid"
 )
 
@@ -160,7 +161,7 @@ func (w *World) Play() {
 
 		w.Draw()
 
-		time.Sleep(50 * time.Millisecond)
+		time.Sleep(20 * time.Millisecond)
 	}
 }
 
