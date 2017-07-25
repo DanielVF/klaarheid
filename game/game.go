@@ -80,6 +80,15 @@ func (w *World) MakeLevel() {
 }
 
 func (w *World) PlayerTurn() {
+
+	for _, object := range w.Objects {
+		if object.IsPlayerControlled() {
+			if r, ok := object.(Reseter); ok {
+				r.Reset()
+			}
+		}
+	}
+
 	for {
 
 		// Deal with mouse events...
@@ -120,14 +129,13 @@ func (w *World) PlayerTurn() {
 		}
 
 		if w.Selection != nil && w.Selection.IsPlayerControlled() && key != "" {
-
-			tm, ok := w.Selection.(TryMover)
-
-			if ok {
+			if tm, ok := w.Selection.(TryMover); ok {
 				if key == "w" { tm.TryMove( 0, -1) }
 				if key == "a" { tm.TryMove(-1,  0) }
 				if key == "s" { tm.TryMove( 0,  1) }
 				if key == "d" { tm.TryMove( 1,  0) }
+			} else {
+				log("Player controlled unit was not a TryMover")
 			}
 		}
 
@@ -138,9 +146,17 @@ func (w *World) PlayerTurn() {
 }
 
 func (w *World) ComputerTurn() {
-	return
-}
 
+	for _, object := range w.Objects {
+		if object.IsPlayerControlled() == false {
+			if r, ok := object.(Reseter); ok {
+				r.Reset()
+			}
+		}
+	}
+
+	// TODO: behave
+}
 
 func (w *World) PlayLevel() {
 	for {

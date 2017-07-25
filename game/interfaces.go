@@ -11,3 +11,7 @@ type Object interface {
 type TryMover interface {
 	TryMove(x, y int)
 }
+
+type Reseter interface {
+	Reset()
+}

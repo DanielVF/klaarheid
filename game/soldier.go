@@ -9,27 +9,12 @@ type Soldier struct {
 }
 
 func NewSoldier(w *World, x, y int) *Soldier {
-	ret := Soldier{
-		Thing: Thing{
-			World: w,
-			X: x,
-			Y: y,
-			HP: 4,
-			Char: '@',
-			Colour: 'g',
-		},
-	}
-	ret.Reset()
+	ret := Soldier{Thing: Thing{World: w, X: x, Y: y, HP: 4, Char: '@', Colour: 'g'}}
 	return &ret
 }
 
 func (s *Soldier) IsPlayerControlled() bool {
 	return true
-}
-
-func (s *Soldier) Reset() {
-	s.MovesLeft = 6
-	s.ActionsLeft = 1
 }
 
 func (s *Soldier) SelectionString() string {
@@ -49,4 +34,9 @@ func (s *Soldier) TryMove(x, y int) {
 	if success {
 		s.MovesLeft -= 1
 	}
+}
+
+func (s *Soldier) Reset() {
+	s.MovesLeft = 6
+	s.ActionsLeft = 1
 }
