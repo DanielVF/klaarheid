@@ -37,7 +37,5 @@ func (s *Soldier) Fire() {
 }
 
 func (s *Soldier) SelectionString() string {
-	m := maybe_plural("move", s.MovesLeft)
-	a := maybe_plural("action", s.ActionsLeft)
-	return fmt.Sprintf("Soldier (%d hp, %d %s, %d %s)", s.HP, s.MovesLeft, m, s.ActionsLeft, a)
+	return fmt.Sprintf("Soldier (hp: %d, moves: %d, actions: %d)", s.HP, s.MovesLeft, s.ActionsLeft)
 }

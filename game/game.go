@@ -28,8 +28,8 @@ type World struct {
 	Window		*electron.Window
 	Width		int
 	Height		int
-	Selection	Object
-	Objects		[]Object
+	Selection	Exister
+	Objects		[]Exister
 }
 
 func (w *World) InBounds(x, y int) bool {
@@ -70,7 +70,7 @@ func (w *World) Draw() {
 	w.Window.Flip()
 }
 
-func (w *World) AddObject(object Object) {
+func (w *World) AddObject(object Exister) {
 	w.Objects = append(w.Objects, object)
 }
 

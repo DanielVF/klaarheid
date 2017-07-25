@@ -1,6 +1,6 @@
 package game
 
-type Object interface {
+type Exister interface {
 	GetX()					int
 	GetY()					int
 	IsPlayerControlled()	bool
