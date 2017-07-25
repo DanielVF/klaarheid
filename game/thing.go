@@ -8,7 +8,8 @@ type Thinger interface {
 	Draw()
 }
 
-// The base Thing object should implement minimal satisfying methods for Thinger
+// The base Thing object should implement minimal satisfying methods for Thinger.
+// Thus, any type that embeds Thing is automatically a Thinger.
 
 type Thing struct {
 	World				*World

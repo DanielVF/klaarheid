@@ -7,7 +7,8 @@ type Mobber interface {
 	AI()
 }
 
-// The base Mob object should implement minimal satisfying methods for Mobber
+// The base Mob object should implement minimal satisfying methods for Mobber.
+// Thus, any type that embeds Mob is automatically a Mobber.
 
 type Mob struct {
 	Thing
