@@ -15,11 +15,16 @@ const (
 )
 
 const (
+	ESC_KEY = "Escape"
+	TAB_KEY = "Tab"
+
 	LEFT_KEY = "a"
 	RIGHT_KEY = "d"
 	UP_KEY = "w"
 	DOWN_KEY = "s"
+
 	FIRE_KEY = "f"
+	PASS_KEY = "p"
 )
 
 // -------------------------------------------------------------------
@@ -128,12 +133,16 @@ func (w *World) PlayerTurn() {
 			key = nextkey
 		}
 
-		if key == "Escape" {
+		if key == ESC_KEY {
 			w.Selection = nil
 		}
 
-		if key == "Tab" {
+		if key == TAB_KEY {
 			w.Tab()
+		}
+
+		if key == PASS_KEY {
+			return
 		}
 
 		if w.Selection != nil && w.Selection.IsPlayerControlled() && key != "" {
@@ -147,10 +156,10 @@ func (w *World) PlayerTurn() {
 				log("Player controlled unit was not a TryMover")
 			}
 
-			if ks, ok := w.Selection.(Keyser); ok {
-				ks.Act(key)
+			if ks, ok := w.Selection.(Keyer); ok {
+				ks.Key(key)
 			} else {
-				log("Player controlled unit was not a Keyser")
+				log("Player controlled unit was not a Keyer")
 			}
 		}
 

@@ -25,7 +25,7 @@ func NewSoldier(w *World, x, y int, faction string) *Soldier {
 	return &ret
 }
 
-func (s *Soldier) Act(key string) {
+func (s *Soldier) Key(key string) {
 	switch key {
 	case FIRE_KEY: s.Fire()
 	}
