@@ -7,6 +7,7 @@ type Thing struct {
 	HP					int
 	Char				byte
 	Colour				byte
+	Faction				string
 }
 
 func (t *Thing) MoveIfNotBlocked(x, y int) bool {
@@ -33,4 +34,8 @@ func (t *Thing) GetY() int {
 
 func (t *Thing) Draw() {
 	t.World.Window.Set(t.X, t.Y, t.Char, t.Colour)
+}
+
+func (t *Thing) IsPlayerControlled() bool {
+	return t.Faction == "player"
 }

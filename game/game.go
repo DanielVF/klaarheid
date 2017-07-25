@@ -14,6 +14,14 @@ const (
 	WORLD_HEIGHT = 28
 )
 
+const (
+	LEFT_KEY = "a"
+	RIGHT_KEY = "d"
+	UP_KEY = "w"
+	DOWN_KEY = "s"
+	FIRE_KEY = "f"
+)
+
 // -------------------------------------------------------------------
 
 type World struct {
@@ -75,8 +83,8 @@ func (w *World) MakeLevel() {
 	w.Objects = nil
 	w.Selection = nil
 
-	w.AddObject(NewSoldier(w, 1, 1))
-	w.AddObject(NewSoldier(w, 2, 2))
+	w.AddObject(NewSoldier(w, 1, 1, "player"))
+	w.AddObject(NewSoldier(w, 2, 2, "player"))
 }
 
 func (w *World) PlayerTurn() {
@@ -129,13 +137,20 @@ func (w *World) PlayerTurn() {
 		}
 
 		if w.Selection != nil && w.Selection.IsPlayerControlled() && key != "" {
+
 			if tm, ok := w.Selection.(TryMover); ok {
-				if key == "w" { tm.TryMove( 0, -1) }
-				if key == "a" { tm.TryMove(-1,  0) }
-				if key == "s" { tm.TryMove( 0,  1) }
-				if key == "d" { tm.TryMove( 1,  0) }
+				if key == UP_KEY { tm.TryMove( 0, -1) }
+				if key == LEFT_KEY { tm.TryMove(-1,  0) }
+				if key == DOWN_KEY { tm.TryMove( 0,  1) }
+				if key == RIGHT_KEY { tm.TryMove( 1,  0) }
 			} else {
 				log("Player controlled unit was not a TryMover")
+			}
+
+			if ks, ok := w.Selection.(Keyser); ok {
+				ks.Act(key)
+			} else {
+				log("Player controlled unit was not a Keyser")
 			}
 		}
 

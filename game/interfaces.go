@@ -15,3 +15,7 @@ type TryMover interface {
 type Reseter interface {
 	Reset()
 }
+
+type Keyser interface {
+	Act(key string)
+}
