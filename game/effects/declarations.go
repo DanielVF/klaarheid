@@ -1,7 +1,7 @@
 package effects
 
 import (
-	electron "../electrongrid"
+	electron "../../electronbridge"
 )
 
 type Point electron.Point

@@ -24,17 +24,17 @@
 
 	const ipcRenderer = require("electron").ipcRenderer;
 
+	function clear_all() {
+		let pre = document.getElementById("log")
+		pre.innerHTML = ""
+	}
+
 	ipcRenderer.on("update", (event, opts) => {
 		let pre = document.getElementById("log")
 		pre.innerHTML += opts.msg
 	});
 
 	ipcRenderer.send("ready", null);
-
-	function clear_all() {
-		let pre = document.getElementById("log")
-		pre.innerHTML = ""
-	}
 </script>
 
 </body>

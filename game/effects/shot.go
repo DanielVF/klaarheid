@@ -2,7 +2,7 @@ package effects
 
 import (
 	"time"
-	electron "../electrongrid"
+	electron "../../electronbridge"
 )
 
 func Shot(win *electron.Window, x1, y1, x2, y2 int) {

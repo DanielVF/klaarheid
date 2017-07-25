@@ -9,7 +9,7 @@ const readline = require("readline");
 const windows = require("./modules/windows");
 
 const STDERR_LOG_WINDOW_ID = -1
-const GAME_APP = "game.exe"
+const TARGET_APP = "app.exe"
 
 
 electron.app.on("ready", () => {
@@ -24,7 +24,7 @@ function main() {
 
 	windows.new_window({
 		uid: STDERR_LOG_WINDOW_ID,
-		page: "log.html",
+		page: "pages/log.html",
 		name: "Console",
 		width: 600,
 		height: 400,
@@ -51,9 +51,9 @@ function main() {
 
 	// Communications with the compiled app....................................
 
-	let exe = child_process.spawn(GAME_APP);
+	let exe = child_process.spawn(TARGET_APP);
 
-	write_to_log("Connected to " + GAME_APP);
+	write_to_log("Connected to " + TARGET_APP);
 
 	function write_to_exe(msg) {
 		try {

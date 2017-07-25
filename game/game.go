@@ -1,21 +1,20 @@
-package main
+package game
 
 import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"time"
 
 	// effects "./effects"
-	electron "./electrongrid"
+	electron "../electronbridge"
 )
 
 const (
 	WORLD_WIDTH = 50
 	WORLD_HEIGHT = 28
 )
-
-// var logfile, _ = os.Create("gamelog.txt")
 
 // -------------------------------------------------------------------
 
@@ -45,10 +44,14 @@ type Object struct {
 }
 
 func (o *Object) SelectionString() string {
-	return fmt.Sprintf("- %s (%dhp), %s", o.Class, o.HP, o.Weapon)
+	return fmt.Sprintf("- %s (%dhp), %s, %dm, %da", o.Class, o.HP, o.Weapon, o.Moves, o.Actions)
 }
 
 func (o *Object) TryMove(x, y int) {
+
+	if o.Moves <= 0 {
+		return
+	}
 
 	tar_x := o.X + x
 	tar_y := o.Y + y
@@ -56,7 +59,13 @@ func (o *Object) TryMove(x, y int) {
 	if o.World.InBounds(tar_x, tar_y) && o.World.Blocked(tar_x, tar_y) == false {
 		o.X = tar_x
 		o.Y = tar_y
+		o.Moves -= 1
 	}
+}
+
+func (o *Object) Reset() {
+	o.MovesLeft = o.Moves
+	o.ActionsLeft = o.Actions
 }
 
 // -------------------------------------------------------------------
@@ -236,32 +245,29 @@ func (w *World) Tab() {
 
 // -------------------------------------------------------------------
 
-func main() {
-
-	world := World{
-		window: electron.NewWindow("World", "grid.html", WORLD_WIDTH, WORLD_HEIGHT + 2, 15, 20, 100, true),
-		width: WORLD_WIDTH,
-		height: WORLD_HEIGHT,
+func log(s string) {
+	if len(s) == 0 {
+		return
 	}
-
-	world.Game()
+	if s[len(s) - 1] != '\n' {
+		s += "\n"
+	}
+	fmt.Fprintf(os.Stderr, s)
 }
 
-// -------------------------------------------------------------------
-
 func object_from_name(name string, world *World, x, y int) *Object {
-	filename := fmt.Sprintf("classes/%s.json", name)
+	filename := fmt.Sprintf("game/classes/%s.json", name)
 
 	j, err := ioutil.ReadFile(filename)
 	if err != nil {
-		electron.Alertf(err.Error())
+		log(err.Error())
 	}
 
 	var new_object Object
 
 	err = json.Unmarshal(j, &new_object)
 	if err != nil {
-		electron.Alertf(err.Error())
+		log(err.Error())
 	}
 
 	new_object.X = x
@@ -269,4 +275,15 @@ func object_from_name(name string, world *World, x, y int) *Object {
 
 	new_object.World = world
 	return &new_object
+}
+
+func App() {
+
+	world := World{
+		window: electron.NewWindow("World", "pages/grid.html", WORLD_WIDTH, WORLD_HEIGHT + 2, 15, 20, 100, true),
+		width: WORLD_WIDTH,
+		height: WORLD_HEIGHT,
+	}
+
+	world.Game()
 }

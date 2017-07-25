@@ -1,4 +1,4 @@
-package electrongrid
+package electronbridge
 
 import (
 	"bufio"
