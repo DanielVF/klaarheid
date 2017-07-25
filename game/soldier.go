@@ -16,7 +16,7 @@ func NewSoldier(w *World, x, y int, faction string) *Soldier {
 				HP: 4,
 				Char: '@',
 				Colour: 'g',
-				Faction: "player",
+				Faction: faction,
 			},
 			Moves: 6,
 			Actions: 1,
