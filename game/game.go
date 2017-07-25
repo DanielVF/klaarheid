@@ -24,7 +24,7 @@ const (
 	DOWN_KEY = "s"
 
 	FIRE_KEY = "f"
-	PASS_KEY = "p"
+	TURN_END_KEY = "t"
 )
 
 // -------------------------------------------------------------------
@@ -33,8 +33,8 @@ type World struct {
 	Window		*electron.Window
 	Width		int
 	Height		int
-	Selection	Exister
-	Objects		[]Exister
+	Selection	Thinger
+	Objects		[]Thinger
 }
 
 func (w *World) InBounds(x, y int) bool {
@@ -75,7 +75,7 @@ func (w *World) Draw() {
 	w.Window.Flip()
 }
 
-func (w *World) AddObject(object Exister) {
+func (w *World) AddObject(object Thinger) {
 	w.Objects = append(w.Objects, object)
 }
 
@@ -90,13 +90,15 @@ func (w *World) MakeLevel() {
 
 	w.AddObject(NewSoldier(w, 1, 1, "player"))
 	w.AddObject(NewSoldier(w, 2, 2, "player"))
+
+	w.AddObject(NewImp(w, WORLD_WIDTH - 2, WORLD_HEIGHT - 2, "demons"))
 }
 
 func (w *World) PlayerTurn() {
 
 	for _, object := range w.Objects {
 		if object.IsPlayerControlled() {
-			if r, ok := object.(Reseter); ok {
+			if r, ok := object.(Mobber); ok {
 				r.Reset()
 			}
 		}
@@ -141,25 +143,25 @@ func (w *World) PlayerTurn() {
 			w.Tab()
 		}
 
-		if key == PASS_KEY {
+		if key == TURN_END_KEY {
 			return
 		}
 
 		if w.Selection != nil && w.Selection.IsPlayerControlled() && key != "" {
 
-			if tm, ok := w.Selection.(TryMover); ok {
+			if tm, ok := w.Selection.(Mobber); ok {
 				if key == UP_KEY { tm.TryMove( 0, -1) }
 				if key == LEFT_KEY { tm.TryMove(-1,  0) }
 				if key == DOWN_KEY { tm.TryMove( 0,  1) }
 				if key == RIGHT_KEY { tm.TryMove( 1,  0) }
 			} else {
-				log("Player controlled unit was not a TryMover")
+				log("Player controlled unit was not a Mobber")
 			}
 
-			if ks, ok := w.Selection.(Keyer); ok {
+			if ks, ok := w.Selection.(Mobber); ok {
 				ks.Key(key)
 			} else {
-				log("Player controlled unit was not a Keyer")
+				log("Player controlled unit was not a Mobber")
 			}
 		}
 
@@ -173,8 +175,16 @@ func (w *World) ComputerTurn() {
 
 	for _, object := range w.Objects {
 		if object.IsPlayerControlled() == false {
-			if r, ok := object.(Reseter); ok {
+			if r, ok := object.(Mobber); ok {
 				r.Reset()
+			}
+		}
+	}
+
+	for _, object := range w.Objects {
+		if object.IsPlayerControlled() == false {
+			if a, ok := object.(Mobber); ok {
+				a.AI()
 			}
 		}
 	}

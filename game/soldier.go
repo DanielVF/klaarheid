@@ -3,12 +3,12 @@ package game
 import "fmt"
 
 type Soldier struct {
-	Actor
+	Mob
 }
 
 func NewSoldier(w *World, x, y int, faction string) *Soldier {
 	ret := Soldier{
-		Actor: Actor{
+		Mob: Mob{
 			Thing: Thing{
 				World: w,
 				X: x,
@@ -25,17 +25,17 @@ func NewSoldier(w *World, x, y int, faction string) *Soldier {
 	return &ret
 }
 
+func (s *Soldier) SelectionString() string {
+	return fmt.Sprintf("Soldier (hp: %d, moves: %d, actions: %d)", s.HP, s.MovesLeft, s.ActionsLeft)
+}
+
 func (s *Soldier) Key(key string) {
 	switch key {
-	case FIRE_KEY: s.Fire()
+	case FIRE_KEY: s.PlayerFire()
 	}
 }
 
-func (s *Soldier) Fire() {
+func (s *Soldier) PlayerFire() {
 	s.ActionsLeft -= 1
 	return
-}
-
-func (s *Soldier) SelectionString() string {
-	return fmt.Sprintf("Soldier (hp: %d, moves: %d, actions: %d)", s.HP, s.MovesLeft, s.ActionsLeft)
 }
