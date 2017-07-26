@@ -33,4 +33,13 @@ func (i *Imp) AI() {
 	}
 
 	i.PathTowards(target.GetX(), target.GetY())
+
+	var args []interface{}
+
+	args = append(args, i.X)
+	args = append(args, i.Y)
+	args = append(args, target.GetX())
+	args = append(args, target.GetY())
+
+	i.World.Window.Special("laser", args)
 }

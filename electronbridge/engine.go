@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"sync"
+	"time"
 )
 
 const (
@@ -19,7 +21,8 @@ var keyclear_chan = make(chan bool)
 var mousedown_chan = make(chan Point)
 var mouse_query_chan = make(chan chan Point)
 
-// var logfile, _ = os.Create("logfile.txt")
+var effect_done_channels = make(map[int]chan bool)
+var effect_done_channels_MUTEX sync.Mutex
 
 // ----------------------------------------------------------
 
@@ -32,7 +35,8 @@ func (i *id_object) next() int {
 	return i.current
 }
 
-var id_maker id_object
+var id_maker			id_object
+var effect_id_maker		id_object
 
 // ----------------------------------------------------------
 
@@ -85,18 +89,26 @@ type NewMsg struct {
 	Content			NewMsgContent			`json:"content"`
 }
 
-// ----------------------------------------------------------
-
 type FlipMsg struct {
 	Command			string					`json:"command"`
 	Content			*Window					`json:"content"`
 }
 
-// ----------------------------------------------------------
-
 type AlertMsg struct {
 	Command			string					`json:"command"`
 	Content			string					`json:"content"`
+}
+
+type SpecialMsgContent struct {
+	Effect			string					`json:"effect"`
+	EffectID		int						`json:"effectid"`
+	Uid				int						`json:"uid"`
+	Args			[]interface{}			`json:"args"`
+}
+
+type SpecialMsg struct {
+	Command			string					`json:"command"`
+	Content			SpecialMsgContent		`json:"content"`
 }
 
 // ----------------------------------------------------------
@@ -134,6 +146,18 @@ type IncomingMouse struct {
 
 // ----------------------------------------------------------
 
+type IncomingEffectDoneContent struct {
+	Uid				int							`json:"uid"`
+	EffectID		int							`json:"effectid"`
+}
+
+type IncomingEffectDone struct {
+	Type			string						`json:"type"`
+	Content			IncomingEffectDoneContent	`json:"content"`
+}
+
+// ----------------------------------------------------------
+
 func init() {
 	go listener()
 	go keymaster()
@@ -147,11 +171,11 @@ func listener() {
 	for {
 		scanner.Scan()
 
+		Logf("%v", scanner.Text())
+
 		if strings.TrimSpace(scanner.Text()) == "" {
 			continue
 		}
-
-		// logfile.WriteString(scanner.Text() + "\n")
 
 		var type_obj IncomingMsgType
 
@@ -187,6 +211,27 @@ func listener() {
 
 			if mouse_msg.Content.Down {
 				mousedown_chan <- Point{mouse_msg.Content.X, mouse_msg.Content.Y}
+			}
+		}
+
+		if type_obj.Type == "effect_done" {
+
+			var effect_done_msg IncomingEffectDone
+
+			err := json.Unmarshal(scanner.Bytes(), &effect_done_msg)
+
+			if err != nil {
+				continue
+			}
+
+			effect_done_channels_MUTEX.Lock()
+			ch := effect_done_channels[effect_done_msg.Content.EffectID]
+			effect_done_channels_MUTEX.Unlock()
+
+			if ch != nil {
+				go effect_notifier(ch)
+			} else {
+				Logf("Received done for effect %d but no notifier was known", effect_done_msg.Content.EffectID)
 			}
 		}
 	}
@@ -266,6 +311,10 @@ func GetMousedown() (Point, error) {
 	return point, err
 }
 
+func effect_notifier(ch chan bool) {
+	ch <- true
+}
+
 // ----------------------------------------------------------
 
 func (w *Window) Set(x, y int, char, colour byte) {
@@ -318,6 +367,56 @@ func (w *Window) Flip() {
 	fmt.Printf("%s\n", string(s))
 }
 
+func (w *Window) Special(effect string, args []interface{}) {
+
+	c := SpecialMsgContent{
+		Effect: effect,
+		Uid: w.Uid,
+		EffectID: effect_id_maker.next(),
+		Args: args,
+	}
+
+	m := SpecialMsg{
+		Command: "special",
+		Content: c,
+	}
+
+	s, err := json.Marshal(m)
+	if err != nil {
+		panic("Failed to Marshal")
+	}
+
+	// We make a channel for the purpose of receiving a message when the effect completes,
+	// and add it to the global map of such channels.
+
+	ch := make(chan bool)
+
+	timeout := time.NewTimer(5 * time.Second)
+
+	effect_done_channels_MUTEX.Lock()
+	effect_done_channels[c.EffectID] = ch
+	effect_done_channels_MUTEX.Unlock()
+
+	fmt.Printf("%s\n", string(s))
+
+	// Now we wait for the message that the effect completed...
+	// Or the timeout ticker to fire.
+
+	ChanLoop:
+	for {
+		select {
+		case <- ch:
+			break ChanLoop
+		case <- timeout.C:
+			break ChanLoop
+		}
+	}
+
+	effect_done_channels_MUTEX.Lock()
+	delete(effect_done_channels, c.EffectID)
+	effect_done_channels_MUTEX.Unlock()
+}
+
 func NewWindow(name, page string, width, height, boxwidth, boxheight, fontpercent int, resizable bool) *Window {
 
 	uid := id_maker.next()
@@ -367,4 +466,19 @@ func Alertf(format_string string, args ...interface{}) {
 		panic("Failed to Marshal")
 	}
 	fmt.Printf("%s\n", string(s))
+}
+
+func Logf(format_string string, args ...interface{}) {
+
+	msg := fmt.Sprintf(format_string, args...)
+
+	if len(msg) < 1 {
+		return
+	}
+
+	if msg[len(msg) - 1] != '\n' {
+		msg += "\n"
+	}
+
+	fmt.Fprintf(os.Stderr, "%s", msg)
 }

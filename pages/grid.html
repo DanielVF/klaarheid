@@ -19,9 +19,16 @@
 	td:hover {
 		color: white !important;
 	}
+	.overlay {
+		pointer-events: none;
+		background: none !important;
+	}
 </style>
 </head>
 <body>
+
+<div id="maintable" style="position: absolute;"></div>
+<canvas id="canvas" class="overlay" style="position: absolute;"></canvas>
 
 <script>
 	"use strict";
@@ -55,7 +62,11 @@
 
 			renderer.width = opts.width;
 			renderer.height = opts.height;
+			renderer.boxwidth = opts.boxwidth;
+			renderer.boxheight = opts.boxheight;
 			renderer.uid = opts.uid;
+			renderer.canvas = document.querySelector("canvas");
+			renderer.virtue = canvas.getContext("2d");
 
 			// Make the table...
 
@@ -72,9 +83,10 @@
 
 			html += "</table>"
 
-			document.getElementsByTagName("body")[0].innerHTML = html;
+			document.getElementById("maintable").innerHTML = html;
 
 			// Although the window is probably already the correct size, do this anyway...
+			// (Anyway, this now sets the canvas to be the right size if it wasn't already.)
 
 			renderer.resize(opts.width * opts.boxwidth, opts.height * opts.boxheight);
 
@@ -139,11 +151,39 @@
 						if (x === highlight.x && y === highlight.y) {
 							element.style["background-color"] = "#494949";
 						} else {
-							element.style["background-color"] = "black";
+							element.style["background-color"] = "#000000";
 						}
 					}
 				}
 			}
+		};
+
+		renderer.special = (opts) => {
+
+			if (opts.effect == "laser") {
+				renderer.laser(opts.args)
+			}
+
+			setTimeout(() => {
+				renderer.virtue.clearRect(0, 0, canvas.width, canvas.height);
+				ipcRenderer.send("effect_done", {effectid: opts.effectid});
+			}, 200);
+		};
+
+		renderer.laser = (args, undo) => {
+
+			let xpixel1 = Math.floor(args[0] * renderer.boxwidth + renderer.boxwidth / 2)
+			let ypixel1 = Math.floor(args[1] * renderer.boxheight + renderer.boxwidth / 2)
+			let xpixel2 = Math.floor(args[2] * renderer.boxwidth + renderer.boxwidth / 2)
+			let ypixel2 = Math.floor(args[3] * renderer.boxheight + renderer.boxwidth / 2)
+
+			renderer.virtue.strokeStyle = "#ffff00";
+			renderer.virtue.lineWidth = 2;
+
+			renderer.virtue.beginPath();
+			renderer.virtue.moveTo(xpixel1, ypixel1);
+			renderer.virtue.lineTo(xpixel2, ypixel2);
+			renderer.virtue.stroke();
 		};
 
 		renderer.resize = (xpixels, ypixels) => {
@@ -152,6 +192,8 @@
 				ypixels: ypixels,
 			};
 			ipcRenderer.send("request_resize", msg);
+			canvas.width = xpixels;
+			canvas.height = ypixels;
 		};
 
 		return renderer;
@@ -169,6 +211,10 @@
 
 	ipcRenderer.on("update", (event, opts) => {
 		renderer.flip(opts);
+	});
+
+	ipcRenderer.on("special", (event, opts) => {
+		renderer.special(opts);
 	});
 
 	// --------------------------------------------------------------

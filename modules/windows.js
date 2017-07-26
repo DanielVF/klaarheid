@@ -99,6 +99,11 @@ function update(content) {
 	send_or_queue(windobject, "update", content);
 }
 
+function special(content) {
+	let windobject = windobjects[content.uid];
+	send_or_queue(windobject, "special", content);
+}
+
 function send_or_queue(windobject, channel, msg) {
 	if (windobject === undefined) {
 		return;
@@ -176,6 +181,7 @@ exports.get_windobject_from_event = get_windobject_from_event;
 exports.resize = resize;
 exports.new_window = new_window;
 exports.update = update;
+exports.special = special;
 exports.handle_ready = handle_ready;
 exports.hide = hide;
 exports.show = show;

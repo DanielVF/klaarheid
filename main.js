@@ -72,6 +72,8 @@ function main() {
 	scanner.on("line", (line) => {
 		let j = JSON.parse(line);
 
+		write_to_log(line)
+
 		if (j.command === "new") {
 			windows.new_window(j.content);
 			windows.quit_now_possible();			// Tell windows module that quitting the app is allowed (i.e. if all windows get closed).
@@ -79,6 +81,10 @@ function main() {
 
 		if (j.command === "update") {
 			windows.update(j.content);
+		}
+
+		if (j.command === "special") {
+			windows.special(j.content);
 		}
 
 		if (j.command === "alert") {
@@ -190,6 +196,18 @@ function main() {
 	ipcMain.on("ready", (event, opts) => {
 		let windobject = windows.get_windobject_from_event(event);
 		windows.handle_ready(windobject, opts);
+	});
+
+	ipcMain.on("effect_done", (event, opts) => {
+		let windobject = windows.get_windobject_from_event(event);
+		let output = {
+			type: "effect_done",
+			content: {
+				uid: windobject.uid,
+				effectid: opts.effectid,
+			}
+		}
+		write_to_exe(JSON.stringify(output));
 	});
 }
 
