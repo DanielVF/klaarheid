@@ -34,12 +34,26 @@ const (
 
 // -------------------------------------------------------------------
 
+type Point struct {
+	X			int
+	Y			int
+}
+
 type World struct {
 	Window		*electron.Window
 	Width		int
 	Height		int
 	Selection	Thinger
 	Objects		[]Thinger
+}
+
+func (w *World) Neighbours(x, y int) []Point {
+	var ret []Point
+	if w.InBounds(x - 1, y) { ret = append(ret, Point{x - 1, y}) }
+	if w.InBounds(x + 1, y) { ret = append(ret, Point{x + 1, y}) }
+	if w.InBounds(x, y - 1) { ret = append(ret, Point{x, y - 1}) }
+	if w.InBounds(x, y + 1) { ret = append(ret, Point{x, y + 1}) }
+	return ret
 }
 
 func (w *World) InBounds(x, y int) bool {
