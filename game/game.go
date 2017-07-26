@@ -10,8 +10,8 @@ import (
 )
 
 const (
-	WORLD_WIDTH = 50
-	WORLD_HEIGHT = 28
+	WORLD_WIDTH = 72
+	WORLD_HEIGHT = 32
 )
 
 const (
@@ -109,7 +109,11 @@ func (w *World) PlayerTurn() {
 		}
 	}
 
+	w.Draw()
+
 	for {
+
+		must_draw := false
 
 		// Deal with mouse events...
 
@@ -118,6 +122,7 @@ func (w *World) PlayerTurn() {
 			if err != nil {
 				break
 			}
+			must_draw = true
 			w.Selection = nil
 			for _, object := range w.Objects {
 				if object.GetX() == click.X && object.GetY() == click.Y {
@@ -138,6 +143,7 @@ func (w *World) PlayerTurn() {
 				break
 			}
 			key = nextkey
+			must_draw = true
 		}
 
 		if key == ESC_KEY {
@@ -170,7 +176,9 @@ func (w *World) PlayerTurn() {
 			}
 		}
 
-		w.Draw()
+		if must_draw {
+			w.Draw()
+		}
 
 		time.Sleep(20 * time.Millisecond)
 	}
@@ -265,7 +273,7 @@ func log(s string) {
 func App() {
 
 	world := World{
-		Window: electron.NewWindow("World", "pages/grid.html", WORLD_WIDTH, WORLD_HEIGHT + 2, 15, 20, 100, true),
+		Window: electron.NewWindow("World", "pages/grid.html", WORLD_WIDTH, WORLD_HEIGHT + 2, 12, 20, 100, true),
 		Width: WORLD_WIDTH,
 		Height: WORLD_HEIGHT,
 	}

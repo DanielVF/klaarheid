@@ -34,7 +34,7 @@ func (t *Thing) IsPlayerControlled() bool {
 }
 
 func (t *Thing) SelectionString() string {			// Override this
-	return "ERROR"
+	return "SelectionString() ERROR"
 }
 
 func (t *Thing) Draw() {
