@@ -1,6 +1,7 @@
 package game
 
 import (
+	"math/rand"
 	"time"
 	electron "../electronbridge"
 )
@@ -26,6 +27,7 @@ const (
 const (
 	PLAYER_FACTION = "Army of Light"
 	DEMON_FACTION = "Demonic Horde"
+	INANIMATE_FACTION = "Inanimate Objects"
 )
 
 // -------------------------------------------------------------------
@@ -107,9 +109,24 @@ func (w *World) MakeLevel() {
 	w.AddObject(NewSoldier(w, 2, 2, PLAYER_FACTION))
 
 	w.AddObject(NewImp(w, WORLD_WIDTH - 2, WORLD_HEIGHT - 2, DEMON_FACTION))
+	w.AddObject(NewImp(w, WORLD_WIDTH - 3, WORLD_HEIGHT - 3, DEMON_FACTION))
+	w.AddObject(NewImp(w, WORLD_WIDTH - 4, WORLD_HEIGHT - 4, DEMON_FACTION))
+	w.AddObject(NewImp(w, WORLD_WIDTH - 5, WORLD_HEIGHT - 5, DEMON_FACTION))
+
+	for n := 0; n < 100; n++ {
+
+		x := rand.Intn(w.Width)
+		y := rand.Intn(w.Height)
+
+		if w.Blocked(x, y) == false {
+			w.AddObject(NewTree(w, x, y, INANIMATE_FACTION))
+		}
+	}
 }
 
 func (w *World) PlayerTurn() {
+
+	electron.ClearKeyQueue()
 
 	for _, object := range w.Objects {
 		if object.IsPlayerControlled() {
@@ -271,6 +288,8 @@ func (w *World) Tab() {
 // -------------------------------------------------------------------
 
 func App() {
+
+	rand.Seed(time.Now().UTC().UnixNano())
 
 	world := World{
 		Window: electron.NewWindow("World", "pages/grid.html", WORLD_WIDTH, WORLD_HEIGHT + 2, 12, 20, 100, true),

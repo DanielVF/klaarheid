@@ -14,6 +14,7 @@ const (
 
 var keypress_chan = make(chan string)
 var key_query_chan = make(chan chan string)
+var keyclear_chan = make(chan bool)
 
 var mousedown_chan = make(chan Point)
 var mouse_query_chan = make(chan chan Point)
@@ -206,6 +207,8 @@ func keymaster() {
 			}
 		case keypress := <- keypress_chan:
 			keyqueue = append(keyqueue, keypress)
+		case <- keyclear_chan:
+			keyqueue = nil
 		}
 	}
 }
@@ -223,6 +226,10 @@ func GetKeypress() (string, error) {
 	}
 
 	return key, err
+}
+
+func ClearKeyQueue() {
+	keyclear_chan <- true
 }
 
 func mousemaster() {

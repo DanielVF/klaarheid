@@ -82,6 +82,10 @@ func (w *World) NearestPC(i, j int) Thinger {
 		x := object.GetX()
 		y := object.GetY()
 
+		if x == i && y == j {
+			return object
+		}
+
 		for _, neigh := range w.Neighbours(x, y) {
 			if distances[neigh.X][neigh.Y] < best_dist {
 				best_object = object
