@@ -1,7 +1,5 @@
 package game
 
-import "fmt"
-
 type Imp struct {
 	Mob
 }
@@ -17,14 +15,11 @@ func NewImp(w *World, x, y int, faction string) *Imp {
 				Char: 'i',
 				Colour: 'r',
 				Faction: faction,
+				Class: "Imp",
 			},
 			Moves: 10,
 			Actions: 1,
 		},
 	}
 	return &ret
-}
-
-func (s *Imp) SelectionString() string {
-	return fmt.Sprintf("Imp (hp: %d, moves: %d, actions: %d)", s.HP, s.MovesLeft, s.ActionsLeft)
 }

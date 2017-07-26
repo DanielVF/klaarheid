@@ -1,7 +1,5 @@
 package game
 
-import "fmt"
-
 type Soldier struct {
 	Mob
 }
@@ -17,16 +15,13 @@ func NewSoldier(w *World, x, y int, faction string) *Soldier {
 				Char: '@',
 				Colour: 'g',
 				Faction: faction,
+				Class: "Soldier",
 			},
 			Moves: 6,
 			Actions: 1,
 		},
 	}
 	return &ret
-}
-
-func (s *Soldier) SelectionString() string {
-	return fmt.Sprintf("Soldier (hp: %d, moves: %d, actions: %d)", s.HP, s.MovesLeft, s.ActionsLeft)
 }
 
 func (s *Soldier) Key(key string) {

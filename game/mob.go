@@ -1,5 +1,7 @@
 package game
 
+import "fmt"
+
 type Mobber interface {
 	Reset()
 	TryMove(x, y int)
@@ -16,6 +18,14 @@ type Mob struct {
 	ActionsLeft			int
 	Moves				int
 	Actions				int
+}
+
+func (s *Mob) SelectionString() string {
+	if s.IsPlayerControlled() {
+		return fmt.Sprintf("%s (hp: %d, moves: %d, actions: %d)", s.Class, s.HP, s.MovesLeft, s.ActionsLeft)
+	} else {
+		return fmt.Sprintf("%s (hp: %d)", s.Class, s.HP)
+	}
 }
 
 func (s *Mob) Reset() {

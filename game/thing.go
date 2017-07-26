@@ -1,11 +1,14 @@
 package game
 
+import "fmt"
+
 type Thinger interface {
+	Draw()
 	GetX()					int
 	GetY()					int
 	IsPlayerControlled()	bool
 	SelectionString()		string
-	Draw()
+	GetClass()				string
 }
 
 // The base Thing object should implement minimal satisfying methods for Thinger.
@@ -19,6 +22,7 @@ type Thing struct {
 	Char				byte
 	Colour				byte
 	Faction				string
+	Class				string
 }
 
 func (t *Thing) GetX() int {
@@ -29,12 +33,20 @@ func (t *Thing) GetY() int {
 	return t.Y
 }
 
+func (t *Thing) GetHP() int {
+	return t.HP
+}
+
+func (t *Thing) GetClass() string {
+	return t.Class
+}
+
 func (t *Thing) IsPlayerControlled() bool {
 	return t.Faction == PLAYER_FACTION
 }
 
-func (t *Thing) SelectionString() string {			// Override this
-	return "SelectionString() ERROR"
+func (t *Thing) SelectionString() string {
+	return fmt.Sprintf("%s (%d HP)", t.Class, t.HP)
 }
 
 func (t *Thing) Draw() {
