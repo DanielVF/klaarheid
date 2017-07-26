@@ -55,37 +55,32 @@ func (w *World) DistanceMap(x, y int) [][]int {
 	ret[x][y] = 0
 	done[x][y] = true
 
+	var seeds []Point
+	var next_seeds []Point
+
+	next_seeds = append(next_seeds, Point{x, y})
+
 	dist := 0
 
 	for {
 
 		dist++
 
-		totally_done := true
+		seeds = next_seeds
+		next_seeds = nil
 
-		for x := 0; x < w.Width; x++ {
-
-			for y := 0; y < w.Height; y++ {
-
-				if done[x][y] || blocks[x][y] {
-					continue
-				}
-
-				for _, neigh := range w.Neighbours(x, y) {
-					if ret[neigh.X][neigh.Y] == dist - 1 {
-						ret[x][y] = dist
-						done[x][y] = true
-						totally_done = false
-					}
+		for _, seed := range(seeds) {
+			for _, neigh := range w.Neighbours(seed.X, seed.Y) {
+				if ret[neigh.X][neigh.Y] == NO_PATH && blocks[neigh.X][neigh.Y] == false {
+					ret[neigh.X][neigh.Y] = dist
+					next_seeds = append(next_seeds, Point{neigh.X, neigh.Y})
 				}
 			}
 		}
 
-		if totally_done {	// i.e. no updates were made this loop
-			break
+		if len(next_seeds) == 0 {
+			return ret
 		}
 	}
-
-	return ret
 }
 
