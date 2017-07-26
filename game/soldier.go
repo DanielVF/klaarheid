@@ -36,6 +36,9 @@ func (s *Soldier) Key(key string) {
 }
 
 func (s *Soldier) PlayerFire() {
+	if s.ActionsLeft <= 0 {
+		return
+	}
 	s.ActionsLeft -= 1
 	return
 }
