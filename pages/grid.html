@@ -8,6 +8,7 @@
 	}
 	table {
 		border-collapse: collapse;
+		table-layout: fixed;
 	}
 	td {
 		text-align: center;
@@ -64,7 +65,7 @@
 				html += "<tr>";
 				for (let x = 0; x < opts.width; x++) {
 					let id = id_from_xy(x, y);
-					html += `<td id="${id}" style="width: ${opts.boxwidth}; height: ${opts.boxheight};"></td>`;
+					html += `<td><div id="${id}" style="width: ${opts.boxwidth}; height: ${opts.boxheight}; overflow: hidden;"></div></td>`;
 				}
 				html += "</tr>"
 			}
