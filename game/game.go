@@ -1,11 +1,7 @@
 package game
 
 import (
-	"fmt"
-	"os"
 	"time"
-
-	// effects "./effects"
 	electron "../electronbridge"
 )
 
@@ -180,13 +176,13 @@ func (w *World) PlayerTurn() {
 				if key == DOWN_KEY { tm.TryMove( 0,  1) }
 				if key == RIGHT_KEY { tm.TryMove( 1,  0) }
 			} else {
-				log("Player controlled unit was not a Mobber")
+				logf("Player controlled unit was not a Mobber")
 			}
 
 			if ks, ok := w.Selection.(Mobber); ok {
 				ks.Key(key)
 			} else {
-				log("Player controlled unit was not a Mobber")
+				logf("Player controlled unit was not a Mobber")
 			}
 		}
 
@@ -273,17 +269,6 @@ func (w *World) Tab() {
 }
 
 // -------------------------------------------------------------------
-
-func log(format_string string, args ...interface{}) {
-	s := fmt.Sprintf(format_string, args...)
-	if len(s) == 0 {
-		return
-	}
-	if s[len(s) - 1] != '\n' {
-		s += "\n"
-	}
-	fmt.Fprintf(os.Stderr, s)
-}
 
 func App() {
 
