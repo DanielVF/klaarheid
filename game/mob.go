@@ -2,6 +2,7 @@ package game
 
 import (
 	"fmt"
+	"math/rand"
 	"time"
 )
 
@@ -67,7 +68,7 @@ func (m *Mob) PathTowards(x, y int) {
 		best_tar_dist := NO_PATH
 
 		for _, neigh := range w.Neighbours(m.X, m.Y) {
-			if distance_map[neigh.X][neigh.Y] < best_tar_dist {
+			if distance_map[neigh.X][neigh.Y] < best_tar_dist || (distance_map[neigh.X][neigh.Y] <= best_tar_dist && rand.Intn(2) == 0) {
 				best_dx = neigh.X - m.X
 				best_dy = neigh.Y - m.Y
 				best_tar_dist = distance_map[neigh.X][neigh.Y]
