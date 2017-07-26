@@ -4,7 +4,7 @@ import "fmt"
 
 type Mobber interface {
 	Reset()
-	TryMove(x, y int)
+	TryMove(x, y int) bool
 	Key(key string)
 	AI()
 }
@@ -33,10 +33,10 @@ func (s *Mob) Reset() {
 	s.ActionsLeft = s.Actions
 }
 
-func (s *Mob) TryMove(x, y int) {
+func (s *Mob) TryMove(x, y int) bool {
 
 	if s.MovesLeft <= 0 {
-		return
+		return false
 	}
 
 	success := s.MoveIfNotBlocked(x, y)
@@ -44,6 +44,8 @@ func (s *Mob) TryMove(x, y int) {
 	if success {
 		s.MovesLeft -= 1
 	}
+
+	return success
 }
 
 func (s *Mob) Key(key string) {

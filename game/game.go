@@ -274,7 +274,8 @@ func (w *World) Tab() {
 
 // -------------------------------------------------------------------
 
-func log(s string) {
+func log(format_string string, args ...interface{}) {
+	s := fmt.Sprintf(format_string, args...)
 	if len(s) == 0 {
 		return
 	}
