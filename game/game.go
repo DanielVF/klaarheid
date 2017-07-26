@@ -27,6 +27,11 @@ const (
 	TURN_END_KEY = "t"
 )
 
+const (
+	PLAYER_FACTION = "Army of Light"
+	DEMON_FACTION = "Demonic Horde"
+)
+
 // -------------------------------------------------------------------
 
 type World struct {
@@ -88,10 +93,10 @@ func (w *World) MakeLevel() {
 	w.Objects = nil
 	w.Selection = nil
 
-	w.AddObject(NewSoldier(w, 1, 1, "player"))
-	w.AddObject(NewSoldier(w, 2, 2, "player"))
+	w.AddObject(NewSoldier(w, 1, 1, PLAYER_FACTION))
+	w.AddObject(NewSoldier(w, 2, 2, PLAYER_FACTION))
 
-	w.AddObject(NewImp(w, WORLD_WIDTH - 2, WORLD_HEIGHT - 2, "demons"))
+	w.AddObject(NewImp(w, WORLD_WIDTH - 2, WORLD_HEIGHT - 2, DEMON_FACTION))
 }
 
 func (w *World) PlayerTurn() {

@@ -30,7 +30,7 @@ func (t *Thing) GetY() int {
 }
 
 func (t *Thing) IsPlayerControlled() bool {
-	return t.Faction == "player"
+	return t.Faction == PLAYER_FACTION
 }
 
 func (t *Thing) SelectionString() string {			// Override this
