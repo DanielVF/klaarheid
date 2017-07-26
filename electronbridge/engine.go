@@ -20,6 +20,7 @@ var keyclear_chan = make(chan bool)
 
 var mousedown_chan = make(chan Point)
 var mouse_query_chan = make(chan chan Point)
+var mouseclear_chan = make(chan bool)
 
 var effect_done_channels = make(map[int]chan bool)
 var effect_done_channels_MUTEX sync.Mutex
@@ -292,6 +293,8 @@ func mousemaster() {
 			}
 		case mousedown := <- mousedown_chan:
 			mousequeue = append(mousequeue, mousedown)
+		case <- mouseclear_chan:
+			mousequeue = nil
 		}
 	}
 }
@@ -309,6 +312,10 @@ func GetMousedown() (Point, error) {
 	}
 
 	return point, err
+}
+
+func ClearMouseQueue() {
+	mouseclear_chan <- true
 }
 
 func effect_notifier(ch chan bool) {

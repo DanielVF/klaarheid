@@ -127,6 +127,7 @@ func (w *World) MakeLevel() {
 func (w *World) PlayerTurn() {
 
 	electron.ClearKeyQueue()
+	electron.ClearMouseQueue()
 
 	for _, object := range w.Objects {
 		if object.IsPlayerControlled() {
