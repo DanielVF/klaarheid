@@ -171,7 +171,7 @@ func listener() {
 	for {
 		scanner.Scan()
 
-		Logf("%v", scanner.Text())
+		// Logf("%v", scanner.Text())
 
 		if strings.TrimSpace(scanner.Text()) == "" {
 			continue
