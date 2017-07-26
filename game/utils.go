@@ -72,7 +72,7 @@ func (w *World) DistanceMap(x, y int) [][]int {
 				}
 
 				for _, neigh := range w.Neighbours(x, y) {
-					if done[neigh.X][neigh.Y] {
+					if ret[neigh.X][neigh.Y] == dist - 1 {
 						ret[x][y] = dist
 						done[x][y] = true
 						totally_done = false
