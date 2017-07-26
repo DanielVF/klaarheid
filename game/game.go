@@ -194,13 +194,13 @@ func (w *World) PlayerTurn() {
 				if key == DOWN_KEY { tm.TryMove( 0,  1) }
 				if key == RIGHT_KEY { tm.TryMove( 1,  0) }
 			} else {
-				logf("Player controlled unit was not a Mobber")
+				electron.Logf("Player controlled unit was not a Mobber")
 			}
 
 			if ks, ok := w.Selection.(Mobber); ok {
 				ks.Key(key)
 			} else {
-				logf("Player controlled unit was not a Mobber")
+				electron.Logf("Player controlled unit was not a Mobber")
 			}
 		}
 

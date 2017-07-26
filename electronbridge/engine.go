@@ -487,5 +487,5 @@ func Logf(format_string string, args ...interface{}) {
 		msg += "\n"
 	}
 
-	fmt.Fprintf(os.Stderr, "%s", msg)
+	fmt.Fprintf(os.Stderr, msg)
 }
