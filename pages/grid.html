@@ -63,7 +63,7 @@
 
 		let renderer = {
 			ready_to_flip: false,
-			postponed_actions: [],
+			postponed_flip: null,
 		};
 
 		renderer.init = (opts) => {
@@ -98,15 +98,14 @@
 
 			renderer.resize(opts.width * opts.boxwidth, opts.height * opts.boxheight);
 
-			// Set the "ready" flag and then deal with any postponed items that were queued
-			// due to us not being ready earlier...
+			// Set the "ready" flag and then deal with any postponed flip.
 
 			renderer.ready_to_flip = true;
 
-			for (let n = 0; n < renderer.postponed_actions.length; n++) {
-				renderer.postponed_actions[n]();
+			if (renderer.postponed_flip != null) {
+				renderer.postponed_flip();
+				renderer.postponed_flip = null;
 			}
-			renderer.postponed_actions = [];
 
 			// Input handlers...
 
@@ -136,7 +135,7 @@
 		renderer.flip = (opts) => {
 
 			if (renderer.ready_to_flip !== true) {
-				renderer.postponed_actions.push(() => renderer.flip(opts));
+				renderer.postponed_flip = () => renderer.flip(opts);
 				return;
 			}
 
@@ -176,58 +175,9 @@
 		};
 
 		renderer.special = (opts) => {
-			if (opts.effect == "laser") {
-				renderer.laser(opts);
-			}
-			if (opts.effect == "shot") {
-				renderer.shot(opts);
-			}
-		};
-
-		renderer.laser = (opts) => {
-			let [xpixel1, ypixel1, xpixel2, ypixel2] = pixels_from_x1y1x2y2(opts.args[0], opts.args[1], opts.args[2], opts.args[3]);
-
-			renderer.virtue.strokeStyle = "#ffff00";
-			renderer.virtue.lineWidth = 2;
-
-			renderer.virtue.beginPath();
-			renderer.virtue.moveTo(xpixel1, ypixel1);
-			renderer.virtue.lineTo(xpixel2, ypixel2);
-			renderer.virtue.stroke();
-
-			renderer.finish_effect_after(200, opts);
-		};
-
-		renderer.shot = (opts) => {
-
-			let [xpixel1, ypixel1, xpixel2, ypixel2] = pixels_from_x1y1x2y2(opts.args[0], opts.args[1], opts.args[2], opts.args[3]);
-
-			let blob = {tick: 0, x: xpixel1, y: ypixel1, speedx: (xpixel2 - xpixel1) / 32, speedy: (ypixel2 - ypixel1) / 32};
-
-			blob.move = () => {
-				blob.x += blob.speedx;
-				blob.y += blob.speedy;
-				blob.tick++;
-			};
-
-			blob.draw = () => {
-				renderer.virtue.clearRect(0, 0, canvas.width, canvas.height);
-				renderer.virtue.fillStyle = "cyan";
-				renderer.virtue.fillRect(blob.x, blob.y, 6, 6);
-			};
-
-			blob.frame = () => {
-				blob.move()
-				blob.draw()
-				if (blob.tick < 32) {
-					requestAnimationFrame(blob.frame);
-				} else {
-					requestAnimationFrame(() => renderer.finish_effect(opts));
-				}
-			};
-
-			blob.frame()
-		};
+			renderer.finish_effect(opts)
+			// FIXME: actually use effects; see https://github.com/fohristiwhirl/gorogue for examples
+		}
 
 		renderer.resize = (xpixels, ypixels) => {
 			let msg = {
