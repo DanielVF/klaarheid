@@ -1,6 +1,7 @@
 package electronbridge
 
 import (
+	"crypto/sha1"
 	"encoding/json"
 	"fmt"
 	"time"
@@ -13,6 +14,8 @@ type GridWindow struct {
 	Chars			ByteSlice					`json:"chars"`
 	Colours			ByteSlice					`json:"colours"`
 	Highlight		Point						`json:"highlight"`
+
+	LastFlip		[20]byte
 }
 
 type NewGridWinMsg struct {
@@ -57,6 +60,7 @@ func NewGridWindow(name, page string, width, height, boxwidth, boxheight, fontpe
 	if err != nil {
 		panic("Failed to Marshal")
 	}
+
 	fmt.Printf("%s\n", string(s))
 
 	return &w
@@ -109,7 +113,14 @@ func (w *GridWindow) Flip() {
 		panic("Failed to Marshal")
 	}
 
-	fmt.Printf("%s\n", string(s))
+	// We cache the last flip and don't repeat it if we don't need to.
+
+	sum := sha1.Sum(s)
+
+	if sum != w.LastFlip {
+		w.LastFlip = sum
+		fmt.Printf("%s\n", string(s))
+	}
 }
 
 func (w *GridWindow) Special(effect string, timeout_duration time.Duration, args []interface{}) {
