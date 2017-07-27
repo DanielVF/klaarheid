@@ -415,6 +415,7 @@ func (w *Window) Special(effect string, args []interface{}) {
 		case <- ch:
 			break ChanLoop
 		case <- timeout.C:
+			Logf("Timed out waiting for effect %d", c.EffectID)
 			break ChanLoop
 		}
 	}

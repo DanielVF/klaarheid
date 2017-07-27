@@ -49,6 +49,14 @@
 		return `td_${x}_${y}`;
 	}
 
+	function pixels_from_x1y1x2y2(x1, y1, x2, y2) {
+		let xpixel1 = Math.floor(x1 * renderer.boxwidth + renderer.boxwidth / 2)
+		let ypixel1 = Math.floor(y1 * renderer.boxheight + renderer.boxwidth / 2)
+		let xpixel2 = Math.floor(x2 * renderer.boxwidth + renderer.boxwidth / 2)
+		let ypixel2 = Math.floor(y2 * renderer.boxheight + renderer.boxwidth / 2)
+		return [xpixel1, ypixel1, xpixel2, ypixel2]
+	}
+
 	// --------------------------------------------------------------
 
 	function make_renderer() {
@@ -158,24 +166,26 @@
 			}
 		};
 
-		renderer.special = (opts) => {
-
-			if (opts.effect == "laser") {
-				renderer.laser(opts.args)
-			}
-
-			setTimeout(() => {
-				renderer.virtue.clearRect(0, 0, canvas.width, canvas.height);
-				ipcRenderer.send("effect_done", {effectid: opts.effectid});
-			}, 200);
+		renderer.finish_effect_after = (t, opts) => {
+			setTimeout(() => renderer.finish_effect(opts), t);
 		};
 
-		renderer.laser = (args, undo) => {
+		renderer.finish_effect = (opts) => {
+			renderer.virtue.clearRect(0, 0, canvas.width, canvas.height);
+			ipcRenderer.send("effect_done", {effectid: opts.effectid});
+		};
 
-			let xpixel1 = Math.floor(args[0] * renderer.boxwidth + renderer.boxwidth / 2)
-			let ypixel1 = Math.floor(args[1] * renderer.boxheight + renderer.boxwidth / 2)
-			let xpixel2 = Math.floor(args[2] * renderer.boxwidth + renderer.boxwidth / 2)
-			let ypixel2 = Math.floor(args[3] * renderer.boxheight + renderer.boxwidth / 2)
+		renderer.special = (opts) => {
+			if (opts.effect == "laser") {
+				renderer.laser(opts);
+			}
+			if (opts.effect == "shot") {
+				renderer.shot(opts);
+			}
+		};
+
+		renderer.laser = (opts) => {
+			let [xpixel1, ypixel1, xpixel2, ypixel2] = pixels_from_x1y1x2y2(opts.args[0], opts.args[1], opts.args[2], opts.args[3]);
 
 			renderer.virtue.strokeStyle = "#ffff00";
 			renderer.virtue.lineWidth = 2;
@@ -184,6 +194,39 @@
 			renderer.virtue.moveTo(xpixel1, ypixel1);
 			renderer.virtue.lineTo(xpixel2, ypixel2);
 			renderer.virtue.stroke();
+
+			renderer.finish_effect_after(200, opts);
+		};
+
+		renderer.shot = (opts) => {
+
+			let [xpixel1, ypixel1, xpixel2, ypixel2] = pixels_from_x1y1x2y2(opts.args[0], opts.args[1], opts.args[2], opts.args[3]);
+
+			let blob = {tick: 0, x: xpixel1, y: ypixel1, speedx: (xpixel2 - xpixel1) / 32, speedy: (ypixel2 - ypixel1) / 32};
+
+			blob.move = () => {
+				blob.x += blob.speedx;
+				blob.y += blob.speedy;
+				blob.tick++;
+			};
+
+			blob.draw = () => {
+				renderer.virtue.clearRect(0, 0, canvas.width, canvas.height);
+				renderer.virtue.fillStyle = "cyan";
+				renderer.virtue.fillRect(blob.x, blob.y, 6, 6);
+			};
+
+			blob.frame = () => {
+				blob.move()
+				blob.draw()
+				if (blob.tick < 32) {
+					requestAnimationFrame(blob.frame);
+				} else {
+					requestAnimationFrame(() => renderer.finish_effect(opts));
+				}
+			};
+
+			blob.frame()
 		};
 
 		renderer.resize = (xpixels, ypixels) => {

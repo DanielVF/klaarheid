@@ -41,5 +41,6 @@ func (i *Imp) AI() {
 	args = append(args, target.GetX())
 	args = append(args, target.GetY())
 
+	i.World.Window.Special("shot", args)
 	i.World.Window.Special("laser", args)
 }
