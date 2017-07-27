@@ -7,7 +7,6 @@ import (
 	"os"
 	"strings"
 	"sync"
-	"time"
 )
 
 const (
@@ -51,8 +50,8 @@ func (b ByteSlice) MarshalJSON() ([]byte, error) {
 // ----------------------------------------------------------
 
 type Point struct {
-	X				int						`json:"x"`
-	Y				int						`json:"y"`
+	X				int							`json:"x"`
+	Y				int							`json:"y"`
 }
 
 type Spot struct {
@@ -62,87 +61,56 @@ type Spot struct {
 
 // ----------------------------------------------------------
 
-type Window struct {
-	Uid				int						`json:"uid"`
-	Width			int						`json:"width"`
-	Height			int						`json:"height"`
-	Chars			ByteSlice				`json:"chars"`
-	Colours			ByteSlice				`json:"colours"`
-	Highlight		Point					`json:"highlight"`
+type OutgoingMessage struct {
+	Command			string						`json:"command"`
+	Content			interface{}					`json:"content"`
 }
 
 // ----------------------------------------------------------
 
-type NewMsgContent struct {
-	Name			string					`json:"name"`
-	Page			string					`json:"page"`
-	Uid				int						`json:"uid"`
-	Width			int						`json:"width"`
-	Height			int						`json:"height"`
-	BoxWidth		int						`json:"boxwidth"`
-	BoxHeight		int						`json:"boxheight"`
-	FontPercent		int						`json:"fontpercent"`
-	Resizable		bool					`json:"resizable"`
-}
-
-type NewMsg struct {
-	Command			string					`json:"command"`
-	Content			NewMsgContent			`json:"content"`
-}
-
-type FlipMsg struct {
-	Command			string					`json:"command"`
-	Content			*Window					`json:"content"`
-}
-
-type AlertMsg struct {
-	Command			string					`json:"command"`
-	Content			string					`json:"content"`
-}
-
 type SpecialMsgContent struct {
-	Effect			string					`json:"effect"`
-	EffectID		int						`json:"effectid"`
-	Uid				int						`json:"uid"`
-	Args			[]interface{}			`json:"args"`
+	Effect			string						`json:"effect"`
+	EffectID		int							`json:"effectid"`
+	Uid				int							`json:"uid"`
+	Args			[]interface{}				`json:"args"`
 }
 
 type SpecialMsg struct {
-	Command			string					`json:"command"`
-	Content			SpecialMsgContent		`json:"content"`
+	Command			string						`json:"command"`
+	Content			SpecialMsgContent			`json:"content"`
 }
 
 // ----------------------------------------------------------
 
 type IncomingMsgType struct {
-	Type			string					`json:"type"`
+	Type			string						`json:"type"`
 }
 
 // ----------------------------------------------------------
 
 type IncomingKeyContent struct {
-	Down			bool					`json:"down"`
-	Uid				int						`json:"uid"`
-	Key				string					`json:"key"`
+	Down			bool						`json:"down"`
+	Uid				int							`json:"uid"`
+	Key				string						`json:"key"`
 }
 
 type IncomingKey struct {
-	Type			string					`json:"type"`
-	Content			IncomingKeyContent		`json:"content"`
+	Type			string						`json:"type"`
+	Content			IncomingKeyContent			`json:"content"`
 }
 
 // ----------------------------------------------------------
 
 type IncomingMouseContent struct {
-	Down			bool					`json:"down"`
-	Uid				int						`json:"uid"`
-	X				int						`json:"x"`
-	Y				int						`json:"y"`
+	Down			bool						`json:"down"`
+	Uid				int							`json:"uid"`
+	X				int							`json:"x"`
+	Y				int							`json:"y"`
 }
 
 type IncomingMouse struct {
-	Type			string					`json:"type"`
-	Content			IncomingMouseContent	`json:"content"`
+	Type			string						`json:"type"`
+	Content			IncomingMouseContent		`json:"content"`
 }
 
 // ----------------------------------------------------------
@@ -324,147 +292,11 @@ func effect_notifier(ch chan bool) {
 
 // ----------------------------------------------------------
 
-func (w *Window) Set(x, y int, char, colour byte) {
-	index := y * w.Width + x
-	if index < 0 || index >= len(w.Chars) || x < 0 || x >= w.Width || y < 0 || y >= w.Height {
-		return
-	}
-	w.Chars[index] = char
-	w.Colours[index] = colour
-}
-
-func (w *Window) SetPointSpot(point Point, spot Spot) {
-	w.Set(point.X, point.Y, spot.Char, spot.Colour)
-}
-
-func (w *Window) Get(x, y int) Spot {
-	index := y * w.Width + x
-	if index < 0 || index >= len(w.Chars) || x < 0 || x >= w.Width || y < 0 || y >= w.Height {
-		return Spot{Char: ' ', Colour: CLEAR_COLOUR}
-	}
-	char := w.Chars[index]
-	colour := w.Colours[index]
-	return Spot{Char: char, Colour: colour}
-}
-
-func (w *Window) SetHighlight(x, y int) {
-	w.Highlight = Point{x, y}
-}
-
-func (w *Window) Clear() {
-	for n := 0; n < len(w.Chars); n++ {
-		w.Chars[n] = ' '
-		w.Colours[n] = CLEAR_COLOUR
-	}
-	w.Highlight = Point{-1, -1}
-}
-
-func (w *Window) Flip() {
-
-	m := FlipMsg{
-		Command: "update",
-		Content: w,
-	}
-
-	s, err := json.Marshal(m)
-	if err != nil {
-		panic("Failed to Marshal")
-	}
-
-	fmt.Printf("%s\n", string(s))
-}
-
-func (w *Window) Special(effect string, args []interface{}) {
-
-	c := SpecialMsgContent{
-		Effect: effect,
-		Uid: w.Uid,
-		EffectID: effect_id_maker.next(),
-		Args: args,
-	}
-
-	m := SpecialMsg{
-		Command: "special",
-		Content: c,
-	}
-
-	s, err := json.Marshal(m)
-	if err != nil {
-		panic("Failed to Marshal")
-	}
-
-	// We make a channel for the purpose of receiving a message when the effect completes,
-	// and add it to the global map of such channels.
-
-	ch := make(chan bool)
-
-	timeout := time.NewTimer(5 * time.Second)
-
-	effect_done_channels_MUTEX.Lock()
-	effect_done_channels[c.EffectID] = ch
-	effect_done_channels_MUTEX.Unlock()
-
-	fmt.Printf("%s\n", string(s))
-
-	// Now we wait for the message that the effect completed...
-	// Or the timeout ticker to fire.
-
-	ChanLoop:
-	for {
-		select {
-		case <- ch:
-			break ChanLoop
-		case <- timeout.C:
-			Logf("Timed out waiting for effect %d", c.EffectID)
-			break ChanLoop
-		}
-	}
-
-	effect_done_channels_MUTEX.Lock()
-	delete(effect_done_channels, c.EffectID)
-	effect_done_channels_MUTEX.Unlock()
-}
-
-func NewWindow(name, page string, width, height, boxwidth, boxheight, fontpercent int, resizable bool) *Window {
-
-	uid := id_maker.next()
-
-	w := Window{Uid: uid, Width: width, Height: height}
-
-	w.Chars = make([]byte, width * height)
-	w.Colours = make([]byte, width * height)
-
-	w.Highlight = Point{-1, -1}
-
-	// Create the message to send to the server...
-
-	m := NewMsg{Command: "new", Content: NewMsgContent{
-			Name: name,
-			Page: page,
-			Uid: uid,
-			Width: width,
-			Height: height,
-			BoxWidth: boxwidth,
-			BoxHeight: boxheight,
-			FontPercent: fontpercent,
-			Resizable: resizable,
-		},
-	}
-
-	s, err := json.Marshal(m)
-	if err != nil {
-		panic("Failed to Marshal")
-	}
-	fmt.Printf("%s\n", string(s))
-
-	return &w
-}
-
 func Alertf(format_string string, args ...interface{}) {
 
 	msg := fmt.Sprintf(format_string, args...)
 
-	m := AlertMsg{
+	m := OutgoingMessage{
 		Command: "alert",
 		Content: msg,
 	}
@@ -477,6 +309,9 @@ func Alertf(format_string string, args ...interface{}) {
 }
 
 func Logf(format_string string, args ...interface{}) {
+
+	// Logging means sending to stderr.
+	// The frontend picks such lines up and adds them to its own log window.
 
 	msg := fmt.Sprintf(format_string, args...)
 

@@ -1,12 +1,12 @@
 "use strict";
 
-const alert = require("./modules/alert");
+const alert = require("./alert");
 const child_process = require("child_process");
 const electron = require("electron");
 const fs = require('fs');
 const ipcMain = require("electron").ipcMain;
 const readline = require("readline");
-const windows = require("./modules/windows");
+const windows = require("./windows");
 
 const STDERR_LOG_WINDOW_ID = -1
 const TARGET_APP = "app.exe"
@@ -25,11 +25,10 @@ function main() {
 	windows.new_window({
 		uid: STDERR_LOG_WINDOW_ID,
 		page: "pages/log.html",
-		name: "Console",
+		name: "Client Log",
 		width: 600,
 		height: 400,
 		resizable: true,
-		nomenu: true,
 		minorwindow: true,
 	});
 
@@ -226,8 +225,12 @@ function menu_build() {
 					role: "toggledevtools"
 				},
 				{
-					label: "Show Console",
+					label: "Show Client Log",
 					click: () => windows.show(STDERR_LOG_WINDOW_ID),
+				},
+				{
+					label: "Show All App Windows",
+					click: () => windows.show_all_except([STDERR_LOG_WINDOW_ID])
 				}
 			]
 		}

@@ -63,17 +63,9 @@ function new_window(config) {
 		win.setMenu(null);
 	}
 
-	// Minor windows get hidden rather than closed.
-
-	if (config.minorwindow === true) {
-		win.on("close", (evt) => {
-			evt.preventDefault();
-			win.hide();
-		});
-	}
-
-	win.on("closed", () => {
-		delete windobjects[config.uid];
+	win.on("close", (evt) => {
+		evt.preventDefault();
+		win.hide();
 		quit_if_all_windows_are_hidden();
 	});
 
@@ -112,7 +104,11 @@ function send_or_queue(windobject, channel, msg) {
 		windobject.queue.push(() => windobject.send(channel, msg))
 		return;
 	}
-	windobject.send(channel, msg);
+	try {
+		windobject.send(channel, msg);
+	} catch (e) {
+		// Can fail at end of app life when the window has been destroyed.
+	}
 }
 
 function handle_ready(windobject, opts) {
@@ -151,6 +147,25 @@ function show(uid) {
 	windobject.win.show()
 }
 
+function show_all_except(uid_array) {
+
+	let keys = Object.keys(windobjects);
+	let exceptions = Object.create(null);
+
+	for (let n = 0; n < uid_array.length; n++) {
+		exceptions[uid_array[n]] = true;
+	}
+
+	for (let n = 0; n < keys.length; n++) {
+		let key = keys[n];
+		let windobject = windobjects[key];
+
+		if (exceptions[windobject.uid] !== true) {
+			windobject.win.show();
+		}
+	}
+}
+
 function quit_if_all_windows_are_hidden() {
 
 	if (!quit_possible) {
@@ -165,8 +180,12 @@ function quit_if_all_windows_are_hidden() {
 
 		let windobject = windobjects[key];
 
-		if (windobject.win.isVisible()) {
-			return;
+		try {
+			if (windobject.win.isVisible()) {
+				return;
+			}
+		} catch (e) {
+			// Can fail at end of app life when the window has been destroyed.
 		}
 	}
 
@@ -185,4 +204,5 @@ exports.special = special;
 exports.handle_ready = handle_ready;
 exports.hide = hide;
 exports.show = show;
+exports.show_all_except = show_all_except;
 exports.quit_now_possible = quit_now_possible;
