@@ -53,19 +53,3 @@ func (self *Thing) SelectionString() string {
 func (self *Thing) Draw() {
 	MAIN_WINDOW.Set(self.X, self.Y, self.Char, self.Colour)
 }
-
-// Other useful methods used by types that "inherit" from Thing...
-
-func (self *Thing) MoveIfNotBlocked(x, y int) bool {
-
-	tar_x := self.X + x
-	tar_y := self.Y + y
-
-	if inbounds(tar_x, tar_y) && self.Area.Blocked(tar_x, tar_y) == false {
-		self.X = tar_x
-		self.Y = tar_y
-		return true
-	}
-
-	return false
-}

@@ -33,6 +33,13 @@ func NewArea(world *World, x, y int) *Area {
 		if self.Blocked(x, y) == false {
 			self.AddObject(NewTree(&self, x, y, VEG_FACTION))
 		}
+
+		x = rand.Intn(AREA_WIDTH)
+		y = rand.Intn(AREA_HEIGHT)
+
+		if self.Blocked(x, y) == false {
+			self.AddObject(NewBush(&self, x, y, VEG_FACTION))
+		}
 	}
 
 	return &self

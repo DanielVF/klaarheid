@@ -8,6 +8,7 @@ import (
 
 type Mobber interface {
 	TryMove(x, y int)			bool
+	MoveIfNotBlocked(x, y int)	bool
 	PathTowards(x, y int)
 	AI()
 }
@@ -40,6 +41,20 @@ func (self *Mob) TryMove(x, y int) bool {
 	}
 
 	return success
+}
+
+func (self *Thing) MoveIfNotBlocked(x, y int) bool {
+
+	tar_x := self.X + x
+	tar_y := self.Y + y
+
+	if inbounds(tar_x, tar_y) && self.Area.Blocked(tar_x, tar_y) == false {
+		self.X = tar_x
+		self.Y = tar_y
+		return true
+	}
+
+	return false
 }
 
 func (self *Mob) PathTowards(x, y int) {
