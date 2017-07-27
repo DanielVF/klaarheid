@@ -3,11 +3,12 @@ package game
 import (
 	"math/rand"
 	"time"
-	electron "../electronbridge"
+	electron "../electronbridge_golib"
 )
 
 type World struct {
-	Window		*electron.Window
+	Window		*electron.GridWindow
+	CombatLog	*electron.TextWindow
 	Width		int
 	Height		int
 	Selection	Thinger
@@ -204,7 +205,9 @@ func (w *World) ComputerTurn() {
 
 func (w *World) PlayLevel() {
 	for {
+		w.CombatLog.Printf("Starting player turn.")
 		w.PlayerTurn()
+		w.CombatLog.Printf("Starting computer turn.")
 		w.ComputerTurn()
 	}
 }
@@ -261,8 +264,12 @@ func App() {
 
 	rand.Seed(time.Now().UTC().UnixNano())
 
+	combat_log := electron.NewTextWindow("Combat Log", "pages/log.html", 600, 400, true)
+	main_window := electron.NewGridWindow("World", "pages/grid.html", WORLD_WIDTH, WORLD_HEIGHT + 2, 12, 20, 100, false)
+
 	world := World{
-		Window: electron.NewWindow("World", "pages/grid.html", WORLD_WIDTH, WORLD_HEIGHT + 2, 12, 20, 100, true),
+		Window: main_window,
+		CombatLog: combat_log,
 		Width: WORLD_WIDTH,
 		Height: WORLD_HEIGHT,
 	}

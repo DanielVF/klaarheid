@@ -1,5 +1,7 @@
 package game
 
+import "time"
+
 type Imp struct {
 	Mob
 }
@@ -41,6 +43,6 @@ func (i *Imp) AI() {
 	args = append(args, target.GetX())
 	args = append(args, target.GetY())
 
-	i.World.Window.Special("shot", args)
-	i.World.Window.Special("laser", args)
+	i.World.Window.Special("shot", 1 * time.Second, args)
+	i.World.Window.Special("laser", 1 * time.Second, args)
 }

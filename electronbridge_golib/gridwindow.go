@@ -112,7 +112,7 @@ func (w *GridWindow) Flip() {
 	fmt.Printf("%s\n", string(s))
 }
 
-func (w *GridWindow) Special(effect string, timeout_seconds float64, args []interface{}) {
+func (w *GridWindow) Special(effect string, timeout_duration time.Duration, args []interface{}) {
 
 	// Special effects. What is available depends on the contents of the html page.
 
@@ -138,7 +138,7 @@ func (w *GridWindow) Special(effect string, timeout_seconds float64, args []inte
 
 	ch := make(chan bool)
 
-	timeout := time.NewTimer(time.Duration(int64(timeout_seconds * 1000)) * time.Millisecond)
+	timeout := time.NewTimer(timeout_duration)
 
 	effect_done_channels_MUTEX.Lock()
 	effect_done_channels[c.EffectID] = ch
