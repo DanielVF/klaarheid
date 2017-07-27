@@ -8,6 +8,7 @@ type Thinger interface {
 	GetY()					int
 	IsPlayerControlled()	bool
 	SelectionString()		string
+	GetFaction()			string
 	GetClass()				string
 }
 
@@ -37,6 +38,10 @@ func (t *Thing) GetHP() int {
 	return t.HP
 }
 
+func (t *Thing) GetFaction() string {
+	return t.Faction
+}
+
 func (t *Thing) GetClass() string {
 	return t.Class
 }
@@ -46,7 +51,7 @@ func (t *Thing) IsPlayerControlled() bool {
 }
 
 func (t *Thing) SelectionString() string {
-	return fmt.Sprintf("%s (%d HP)", t.Class, t.HP)
+	return fmt.Sprintf("%s (hp: %d)", t.Class, t.HP)
 }
 
 func (t *Thing) Draw() {

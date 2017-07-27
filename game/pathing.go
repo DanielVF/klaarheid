@@ -66,7 +66,7 @@ func (w *World) DistanceMap(x, y int) [][]int {
 	}
 }
 
-func (w *World) NearestPC(i, j int) Thinger {
+func (w *World) NearestFactionMob(faction string, i, j int) Thinger {
 
 	distances := w.DistanceMap(i, j)
 
@@ -75,7 +75,7 @@ func (w *World) NearestPC(i, j int) Thinger {
 
 	for _, object := range w.Objects {
 
-		if object.IsPlayerControlled() == false {
+		if object.GetFaction() != faction {
 			continue
 		}
 

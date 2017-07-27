@@ -26,7 +26,7 @@ func NewImp(w *World, x, y int, faction string) *Imp {
 
 func (i *Imp) AI() {
 
-	target := i.World.NearestPC(i.X, i.Y)
+	target := i.World.NearestFactionMob(PLAYER_FACTION, i.X, i.Y)
 
 	if target == nil {
 		return
