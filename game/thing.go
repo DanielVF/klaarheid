@@ -6,7 +6,7 @@ type Thinger interface {
 	Draw()
 	GetX()					int
 	GetY()					int
-	IsPlayerControlled()	bool
+	GetHP()					int
 	SelectionString()		string
 	GetFaction()			string
 	GetClass()				string
@@ -16,7 +16,7 @@ type Thinger interface {
 // Thus, any type that embeds Thing is automatically a Thinger.
 
 type Thing struct {
-	World				*World
+	Area				*Area
 	X					int
 	Y					int
 	HP					int
@@ -26,48 +26,44 @@ type Thing struct {
 	Class				string
 }
 
-func (t *Thing) GetX() int {
-	return t.X
+func (self *Thing) GetX() int {
+	return self.X
 }
 
-func (t *Thing) GetY() int {
-	return t.Y
+func (self *Thing) GetY() int {
+	return self.Y
 }
 
-func (t *Thing) GetHP() int {
-	return t.HP
+func (self *Thing) GetHP() int {
+	return self.HP
 }
 
-func (t *Thing) GetFaction() string {
-	return t.Faction
+func (self *Thing) GetFaction() string {
+	return self.Faction
 }
 
-func (t *Thing) GetClass() string {
-	return t.Class
+func (self *Thing) GetClass() string {
+	return self.Class
 }
 
-func (t *Thing) IsPlayerControlled() bool {
-	return t.Faction == PLAYER_FACTION
+func (self *Thing) SelectionString() string {
+	return fmt.Sprintf("%s (hp: %d)", self.Class, self.HP)
 }
 
-func (t *Thing) SelectionString() string {
-	return fmt.Sprintf("%s (hp: %d)", t.Class, t.HP)
-}
-
-func (t *Thing) Draw() {
-	t.World.Window.Set(t.X, t.Y, t.Char, t.Colour)
+func (self *Thing) Draw() {
+	MAIN_WINDOW.Set(self.X, self.Y, self.Char, self.Colour)
 }
 
 // Other useful methods used by types that "inherit" from Thing...
 
-func (t *Thing) MoveIfNotBlocked(x, y int) bool {
+func (self *Thing) MoveIfNotBlocked(x, y int) bool {
 
-	tar_x := t.X + x
-	tar_y := t.Y + y
+	tar_x := self.X + x
+	tar_y := self.Y + y
 
-	if t.World.InBounds(tar_x, tar_y) && t.World.Blocked(tar_x, tar_y) == false {
-		t.X = tar_x
-		t.Y = tar_y
+	if inbounds(tar_x, tar_y) && self.Area.Blocked(tar_x, tar_y) == false {
+		self.X = tar_x
+		self.Y = tar_y
 		return true
 	}
 

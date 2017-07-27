@@ -7,8 +7,10 @@ import (
 )
 
 type Mobber interface {
+	Reset()
 	TryMove(x, y int)			bool
 	PathTowards(x, y int)
+	Key(key string)
 	AI()
 }
 
@@ -23,32 +25,41 @@ type Mob struct {
 	Actions						int
 }
 
-func (self *Mob) SelectionString() string {
-	return fmt.Sprintf("%s (hp: %d, moves: %d, actions: %d)", self.Class, self.HP, self.MovesLeft, self.ActionsLeft)
+func (s *Mob) SelectionString() string {
+	if s.IsPlayerControlled() {
+		return fmt.Sprintf("%s (hp: %d, moves: %d, actions: %d)", s.Class, s.HP, s.MovesLeft, s.ActionsLeft)
+	} else {
+		return fmt.Sprintf("%s (hp: %d)", s.Class, s.HP)
+	}
 }
 
-func (self *Mob) TryMove(x, y int) bool {
+func (s *Mob) Reset() {
+	s.MovesLeft = s.Moves
+	s.ActionsLeft = s.Actions
+}
 
-	if self.MovesLeft <= 0 {
+func (s *Mob) TryMove(x, y int) bool {
+
+	if s.MovesLeft <= 0 {
 		return false
 	}
 
-	success := self.MoveIfNotBlocked(x, y)
+	success := s.MoveIfNotBlocked(x, y)
 
 	if success {
-		self.MovesLeft -= 1
+		s.MovesLeft -= 1
 	}
 
 	return success
 }
 
-func (self *Mob) PathTowards(x, y int) {
+func (m *Mob) PathTowards(x, y int) {
 
-	a := self.Area
+	w := m.World
 
-	distance_map := a.DistanceMap(x, y)
+	distance_map := w.DistanceMap(x, y)
 
-	max_moves := self.MovesLeft
+	max_moves := m.MovesLeft
 
 	for n := 0; n < max_moves; n++ {
 
@@ -56,18 +67,18 @@ func (self *Mob) PathTowards(x, y int) {
 		best_dy := 0
 		best_tar_dist := NO_PATH
 
-		for _, neigh := range neighbours(self.X, self.Y) {
+		for _, neigh := range w.Neighbours(m.X, m.Y) {
 			if distance_map[neigh.X][neigh.Y] < best_tar_dist || (distance_map[neigh.X][neigh.Y] <= best_tar_dist && rand.Intn(2) == 0) {
-				best_dx = neigh.X - self.X
-				best_dy = neigh.Y - self.Y
+				best_dx = neigh.X - m.X
+				best_dy = neigh.Y - m.Y
 				best_tar_dist = distance_map[neigh.X][neigh.Y]
 			}
 		}
 
 		if best_dx != 0 || best_dy != 0 {
 
-			success := self.TryMove(best_dx, best_dy)
-			a.Draw()
+			success := m.TryMove(best_dx, best_dy)
+			w.Draw()
 			time.Sleep(50 * time.Millisecond)
 
 			if success == false {
@@ -77,6 +88,10 @@ func (self *Mob) PathTowards(x, y int) {
 	}
 }
 
-func (self *Mob) AI() {
+func (s *Mob) Key(key string) {
+	return
+}
+
+func (s *Mob) AI() {
 	return
 }

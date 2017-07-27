@@ -4,15 +4,15 @@ type Tree struct {
 	Thing
 }
 
-func NewTree(area *Area, x, y int, faction string) *Tree {
+func NewTree(w *World, x, y int, faction string) *Tree {
 
 	ret := Tree{
 		Thing: Thing{
-			Area: area,
+			World: w,
 			X: x,
 			Y: y,
 			HP: 10,
-			Char: 'Y',
+			Char: 'T',
 			Colour: 'G',
 			Faction: faction,
 			Class: "Tree",

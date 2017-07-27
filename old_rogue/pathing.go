@@ -2,16 +2,16 @@ package game
 
 const NO_PATH = 999999
 
-func (self *Area) BlockMap() [][]bool {
+func (w *World) BlockMap() [][]bool {
 
-	ret := make_2d_bool_array(AREA_WIDTH, AREA_HEIGHT)
+	ret := make_2d_bool_array(w.Width, w.Height)
 
-	for _, object := range self.Objects {
+	for _, object := range w.Objects {
 
 		x := object.GetX()
 		y := object.GetY()
 
-		if x >= 0 && x < AREA_WIDTH && y >= 0 && y < AREA_HEIGHT {
+		if x >= 0 && x < w.Width && y >= 0 && y < w.Height {
 			ret[x][y] = true
 		}
 	}
@@ -19,19 +19,19 @@ func (self *Area) BlockMap() [][]bool {
 	return ret
 }
 
-func (self *Area) DistanceMap(x, y int) [][]int {
+func (w *World) DistanceMap(x, y int) [][]int {
 
-	blocks := self.BlockMap()
+	blocks := w.BlockMap()
 
-	ret := make_2d_int_array(AREA_WIDTH, AREA_HEIGHT)
+	ret := make_2d_int_array(w.Width, w.Height)
 
-	for x := 0; x < AREA_WIDTH; x++ {
-		for y := 0; y < AREA_HEIGHT; y++ {
+	for x := 0; x < w.Width; x++ {
+		for y := 0; y < w.Height; y++ {
 			ret[x][y] = NO_PATH
 		}
 	}
 
-	if inbounds(x, y) == false {
+	if w.InBounds(x, y) == false {
 		return ret
 	}
 
@@ -52,7 +52,7 @@ func (self *Area) DistanceMap(x, y int) [][]int {
 		next_seeds = nil
 
 		for _, seed := range(seeds) {
-			for _, neigh := range neighbours(seed.X, seed.Y) {
+			for _, neigh := range w.Neighbours(seed.X, seed.Y) {
 				if ret[neigh.X][neigh.Y] == NO_PATH && blocks[neigh.X][neigh.Y] == false {
 					ret[neigh.X][neigh.Y] = dist
 					next_seeds = append(next_seeds, Point{neigh.X, neigh.Y})
@@ -66,14 +66,14 @@ func (self *Area) DistanceMap(x, y int) [][]int {
 	}
 }
 
-func (self *Area) NearestFactionMob(faction string, i, j int) Thinger {
+func (w *World) NearestFactionMob(faction string, i, j int) Thinger {
 
-	distances := self.DistanceMap(i, j)
+	distances := w.DistanceMap(i, j)
 
 	best_dist := NO_PATH
 	var best_object Thinger = nil
 
-	for _, object := range self.Objects {
+	for _, object := range w.Objects {
 
 		if object.GetFaction() != faction {
 			continue
@@ -86,7 +86,7 @@ func (self *Area) NearestFactionMob(faction string, i, j int) Thinger {
 			return object
 		}
 
-		for _, neigh := range neighbours(x, y) {
+		for _, neigh := range w.Neighbours(x, y) {
 			if distances[neigh.X][neigh.Y] < best_dist {
 				best_object = object
 				best_dist = distances[neigh.X][neigh.Y]
