@@ -1,5 +1,7 @@
 package game
 
+import "math/rand"
+
 func make_2d_bool_array(width, height int) [][]bool {
 	ret := make([][]bool, width)
 	for x := 0; x < width; x++ {
@@ -31,4 +33,19 @@ func neighbours(x, y int) []Point {
 	if inbounds(x, y - 1) { ret = append(ret, Point{x, y - 1}) }
 	if inbounds(x, y + 1) { ret = append(ret, Point{x, y + 1}) }
 	return ret
+}
+
+func random_direction() Vector {
+	switch rand.Intn(4) {
+	case UP:
+		return Vector{0, -1}
+	case DOWN:
+		return Vector{0, 1}
+	case LEFT:
+		return Vector{-1, 0}
+	case RIGHT:
+		return Vector{1, 0}
+	default:
+		return Vector{0, 0}
+	}
 }

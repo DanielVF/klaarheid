@@ -42,6 +42,16 @@ func NewArea(world *World, x, y int) *Area {
 		}
 	}
 
+	for n := 0; n < 10; n++ {
+
+		x := rand.Intn(AREA_WIDTH)
+		y := rand.Intn(AREA_HEIGHT)
+
+		if self.Blocked(x, y) == false {
+			self.AddObject(NewOrc(&self, x, y, ORC_FACTION))
+		}
+	}
+
 	return &self
 }
 
@@ -81,6 +91,30 @@ func (self *Area) AddObject(object Thinger) {
 	self.Objects = append(self.Objects, object)
 }
 
+func (self *Area) HandleMouse() bool {				// Return true if selection changed.
+
+	original_selection := self.Selection
+
+	for {
+		click, err := electron.GetMousedown()
+		if err != nil {
+			break
+		}
+		self.Selection = nil
+		for _, object := range self.Objects {
+			if object.GetX() == click.X && object.GetY() == click.Y {
+				self.Selection = object
+			}
+		}
+	}
+
+	if self.Selection == original_selection {
+		return false
+	} else {
+		return true
+	}
+}
+
 func (self *Area) Play() {
 
 	COMBAT_LOG.Printf("Camera now at area [%d,%d]", self.X, self.Y)
@@ -88,30 +122,20 @@ func (self *Area) Play() {
 	self.Selection = nil
 
 	for {
-
-		// Mouse events...
-
-		for {
-			click, err := electron.GetMousedown()
-			if err != nil {
-				break
-			}
-			self.Selection = nil
-			for _, object := range self.Objects {
-				if object.GetX() == click.X && object.GetY() == click.Y {
-					self.Selection = object
-				}
-			}
-		}
-
 		for _, object := range self.Objects {
 			if m, ok := object.(Mobber); ok {
 				m.AI()
 			}
 		}
-
 		self.Draw()
-		time.Sleep(100 * time.Millisecond)
+
+		for n := 0; n < 500; n += 50 {
+			selection_changed := self.HandleMouse()
+			if selection_changed {
+				self.Draw()
+			}
+			time.Sleep(50 * time.Millisecond)
+		}
 	}
 }
 

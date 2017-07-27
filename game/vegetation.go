@@ -1,19 +1,19 @@
 package game
 
-type Tree struct {
+type BigPlant struct {
 	Thing
 }
 
-func NewTree(area *Area, x, y int, faction string) *Tree {
+func NewTree(area *Area, x, y int, faction string) *BigPlant {
 
-	ret := Tree{
+	ret := BigPlant{
 		Thing: Thing{
 			Area: area,
 			X: x,
 			Y: y,
 			HP: 10,
 			Char: 'Y',
-			Colour: 'g',
+			Colour: 'G',
 			Faction: faction,
 			Class: "Tree",
 		},
@@ -22,9 +22,9 @@ func NewTree(area *Area, x, y int, faction string) *Tree {
 	return &ret
 }
 
-func NewBush(area *Area, x, y int, faction string) *Tree {
+func NewBush(area *Area, x, y int, faction string) *BigPlant {
 
-	ret := Tree{
+	ret := BigPlant{
 		Thing: Thing{
 			Area: area,
 			X: x,
