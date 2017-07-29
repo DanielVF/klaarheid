@@ -1,0 +1,21 @@
+[
+	{
+		"class": "Bush",
+		"char": "*",
+		"colour": "g",
+		"hp": 2
+	},
+	{
+		"class": "Orc",
+		"char": "o",
+		"colour": "r",
+		"hp": 4,
+		"ai": "RandomWalk"
+	},
+	{
+		"class": "Tree",
+		"char": "Y",
+		"colour": "G",
+		"hp": 10
+	}
+]

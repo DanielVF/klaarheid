@@ -29,14 +29,14 @@ func NewArea(world *World, x, y int) *Area {
 		y := rand.Intn(AREA_HEIGHT)
 
 		if self.Blocked(x, y) == false {
-			self.AddObject(NewTree(&self, x, y, VEG_FACTION))
+			self.AddObject(NewObject("Tree", &self, x, y, VEG_FACTION))
 		}
 
 		x = rand.Intn(AREA_WIDTH)
 		y = rand.Intn(AREA_HEIGHT)
 
 		if self.Blocked(x, y) == false {
-			self.AddObject(NewBush(&self, x, y, VEG_FACTION))
+			self.AddObject(NewObject("Bush", &self, x, y, VEG_FACTION))
 		}
 	}
 
@@ -46,7 +46,7 @@ func NewArea(world *World, x, y int) *Area {
 		y := rand.Intn(AREA_HEIGHT)
 
 		if self.Blocked(x, y) == false {
-			self.AddObject(NewOrc(&self, x, y, ORC_FACTION))
+			self.AddObject(NewObject("Orc", &self, x, y, ORC_FACTION))
 		}
 	}
 
@@ -121,8 +121,8 @@ func (self *Area) Play() {
 
 	for {
 		for _, object := range self.Objects {
-			if object.AI != nil {
-				f := object.AI
+			if object.AIFunc != nil {
+				f := object.AIFunc
 				f(object)
 			}
 		}

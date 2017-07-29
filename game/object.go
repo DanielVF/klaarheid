@@ -1,25 +1,67 @@
 package game
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type Object struct {
+	Class				string			`json:"class"`
+	Char				string			`json:"char"`
+	Colour				string			`json:"colour"`
+	AI					string			`json:"ai"`
+	HP					int				`json:"hp"`
+
 	Area				*Area
 	X					int
 	Y					int
-	HP					int
-	Char				byte
-	Colour				byte
 	Faction				string
-	Class				string
-	AI					func(*Object)
+	AIFunc				func(*Object)
+}
+
+func NewObject(class string, area *Area, x, y int, faction string) *Object {
+
+	o := new(Object)
+
+	base_class, ok := BASE_CLASSES[class]
+
+	if !ok {
+		panic(fmt.Sprintf("Class %s not known", class))
+	}
+
+	*o = *base_class
+
+	o.Area = area
+	o.X = x
+	o.Y = y
+	o.Faction = faction
+
+	return o
 }
 
 func (self *Object) SelectionString() string {
-	return fmt.Sprintf("%s (hp: %d)", self.Class, self.HP)
+	return fmt.Sprintf("%s / %s (hp: %d)", self.Class, self.Faction, self.HP)
 }
 
 func (self *Object) Draw() {
-	MAIN_WINDOW.Set(self.X, self.Y, self.Char, self.Colour)
+
+	var char byte
+	var colour byte
+
+	// The bridge library wants bytes not strings for colour and char.
+
+	if self.Colour != "" {
+		colour = self.Colour[0]
+	} else {
+		colour = 'w'
+	}
+
+	if self.Char != "" {
+		char = self.Char[0]
+	} else {
+		char = '?'
+	}
+
+	MAIN_WINDOW.Set(self.X, self.Y, char, colour)
 }
 
 func (self *Object) TryMove(dx, dy int) bool {
