@@ -7,14 +7,12 @@ import (
 	electron "../electronbridge_golib"
 )
 
-// ---------------------------------------------------------
-
 type Area struct {
 	World		*World
 	X			int
 	Y			int
-	Selection	Thinger
-	Objects		[]Thinger
+	Selection	*Object
+	Objects		[]*Object
 }
 
 func NewArea(world *World, x, y int) *Area {
@@ -59,7 +57,7 @@ func NewArea(world *World, x, y int) *Area {
 
 func (self *Area) Blocked(x, y int) bool {
 	for _, object := range self.Objects {
-		if object.GetX() == x && object.GetY() == y {
+		if object.X == x && object.Y == y {
 			return true
 		}
 	}
@@ -75,7 +73,7 @@ func (self *Area) Draw() {
 		object.Draw()
 
 		if object == self.Selection {
-			MAIN_WINDOW.SetHighlight(object.GetX(), object.GetY())
+			MAIN_WINDOW.SetHighlight(object.X, object.Y)
 		}
 	}
 
@@ -87,7 +85,7 @@ func (self *Area) Draw() {
 	MAIN_WINDOW.Flip()
 }
 
-func (self *Area) AddObject(object Thinger) {
+func (self *Area) AddObject(object *Object) {
 	self.Objects = append(self.Objects, object)
 }
 
@@ -102,7 +100,7 @@ func (self *Area) HandleMouse() bool {				// Return true if selection changed.
 		}
 		self.Selection = nil
 		for _, object := range self.Objects {
-			if object.GetX() == click.X && object.GetY() == click.Y {
+			if object.X == click.X && object.Y == click.Y {
 				self.Selection = object
 			}
 		}
@@ -123,8 +121,9 @@ func (self *Area) Play() {
 
 	for {
 		for _, object := range self.Objects {
-			if m, ok := object.(Mobber); ok {
-				m.AI()
+			if object.AI != nil {
+				f := object.AI
+				f(object)
 			}
 		}
 		self.Draw()

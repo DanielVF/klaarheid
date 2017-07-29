@@ -1,7 +1,5 @@
 package game
 
-// ---------------------------------------------------------
-
 type World struct {
 	Width		int
 	Height		int

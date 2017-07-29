@@ -8,8 +8,8 @@ func (self *Area) BlockMap() [][]bool {
 
 	for _, object := range self.Objects {
 
-		x := object.GetX()
-		y := object.GetY()
+		x := object.X
+		y := object.Y
 
 		if x >= 0 && x < AREA_WIDTH && y >= 0 && y < AREA_HEIGHT {
 			ret[x][y] = true
@@ -66,27 +66,24 @@ func (self *Area) DistanceMap(x, y int) [][]int {
 	}
 }
 
-func (self *Area) NearestFactionMob(faction string, i, j int) Thinger {
+func (self *Area) NearestFactionMob(faction string, x, y int) *Object {
 
-	distances := self.DistanceMap(i, j)
+	distances := self.DistanceMap(x, y)
 
 	best_dist := NO_PATH
-	var best_object Thinger = nil
+	var best_object *Object = nil
 
 	for _, object := range self.Objects {
 
-		if object.GetFaction() != faction {
+		if object.Faction != faction {
 			continue
 		}
 
-		x := object.GetX()
-		y := object.GetY()
-
-		if x == i && y == j {
+		if object.X == x && object.Y == y {
 			return object
 		}
 
-		for _, neigh := range neighbours(x, y) {
+		for _, neigh := range neighbours(object.X, object.Y) {
 			if distances[neigh.X][neigh.Y] < best_dist {
 				best_object = object
 				best_dist = distances[neigh.X][neigh.Y]
