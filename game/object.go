@@ -43,25 +43,7 @@ func (self *Object) SelectionString() string {
 }
 
 func (self *Object) Draw() {
-
-	var char byte
-	var colour byte
-
-	// The bridge library wants bytes not strings for colour and char.
-
-	if self.Colour != "" {
-		colour = self.Colour[0]
-	} else {
-		colour = 'w'
-	}
-
-	if self.Char != "" {
-		char = self.Char[0]
-	} else {
-		char = '?'
-	}
-
-	MAIN_WINDOW.Set(self.X, self.Y, char, colour)
+	MAIN_WINDOW.Set(self.X, self.Y, self.Char, self.Colour)
 }
 
 func (self *Object) TryMove(dx, dy int) bool {

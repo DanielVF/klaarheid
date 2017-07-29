@@ -129,7 +129,11 @@ func (self *Area) Play() {
 }
 
 func (self *Area) WriteSelection(s string) {
-	for x := 0; x < len(s); x++ {
-		MAIN_WINDOW.Set(x, AREA_HEIGHT + 1, s[x], 'w')
+
+	x := 0
+
+	for _, char := range s {
+		MAIN_WINDOW.Set(x, AREA_HEIGHT + 1, string(char), "w")
+		x++
 	}
 }
