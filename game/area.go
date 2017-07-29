@@ -23,32 +23,9 @@ func NewArea(world *World, x, y int) *Area {
 		Y: y,
 	}
 
-	for n := 0; n < 100; n++ {
-
-		x := rand.Intn(AREA_WIDTH)
-		y := rand.Intn(AREA_HEIGHT)
-
-		if self.Blocked(x, y) == false {
-			self.AddObject(NewObject("Tree", &self, x, y, VEG_FACTION))
-		}
-
-		x = rand.Intn(AREA_WIDTH)
-		y = rand.Intn(AREA_HEIGHT)
-
-		if self.Blocked(x, y) == false {
-			self.AddObject(NewObject("Bush", &self, x, y, VEG_FACTION))
-		}
-	}
-
-	for n := 0; n < 10; n++ {
-
-		x := rand.Intn(AREA_WIDTH)
-		y := rand.Intn(AREA_HEIGHT)
-
-		if self.Blocked(x, y) == false {
-			self.AddObject(NewObject("Orc", &self, x, y, ORC_FACTION))
-		}
-	}
+	self.AddRandomly("Tree", VEG_FACTION, 100)
+	self.AddRandomly("Bush", VEG_FACTION, 100)
+	self.AddRandomly("Orc", ORC_FACTION, 10)
 
 	return &self
 }
@@ -87,6 +64,19 @@ func (self *Area) Draw() {
 
 func (self *Area) AddObject(object *Object) {
 	self.Objects = append(self.Objects, object)
+}
+
+func (self *Area) AddRandomly(classname, faction string, count int) {
+
+	for n := 0; n < count; n++ {
+
+		x := rand.Intn(AREA_WIDTH)
+		y := rand.Intn(AREA_HEIGHT)
+
+		if self.Blocked(x, y) == false {
+			self.AddObject(NewObject(classname, self, x, y, faction))
+		}
+	}
 }
 
 func (self *Area) HandleMouse() bool {				// Return true if selection changed.
