@@ -12,7 +12,7 @@ type Mob struct {
 	Thing
 }
 
-func (self *Thing) TryMove(dx, dy int) bool {
+func (self *Mob) TryMove(dx, dy int) bool {
 
 	tar_x := self.X + dx
 	tar_y := self.Y + dy
