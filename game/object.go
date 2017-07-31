@@ -2,7 +2,6 @@ package game
 
 import (
 	"fmt"
-	electron "../electronbridge_golib"
 )
 
 type Object struct {
@@ -53,6 +52,7 @@ func (self *Object) BlockableMove(tar_x, tar_y int) bool {
 
 	if inbounds(tar_x, tar_y) && self.Area.Blocked(tar_x, tar_y) == false {
 		success := self.Area.Move(self, tar_x, tar_y)
+		return success
 	}
 
 	return false
