@@ -136,23 +136,42 @@ func (self *Area) Play() {
 	self.Selection = nil
 
 	for {
-		for _, object := range self.Objects {
+
+		// I forget whether we can safely edit a slice while ranging over it,
+		// so make a copy of the objects slice to work on...
+
+		var normal_objects []*Object = make([]*Object, len(self.Objects))
+		copy(normal_objects, self.Objects)
+
+		// Likewise for tile objects...
+
+		var tile_objects []*Object
+
+		for x := 0; x < AREA_WIDTH; x++ {
+			for y := 0; y < AREA_HEIGHT; y++ {
+				if self.Tiles[x][y] != nil {
+					tile_objects = append(tile_objects, self.Tiles[x][y])
+				}
+			}
+		}
+
+		// Now call AIs...
+
+		for _, object := range normal_objects {
 			if object.AIFunc != nil {
 				f := object.AIFunc
 				f(object)
 			}
 		}
 
-		for x := 0; x < AREA_WIDTH; x++ {
-			for y := 0; y < AREA_HEIGHT; y++ {
-				if self.Tiles[x][y] != nil {
-					if self.Tiles[x][y].AIFunc != nil {
-						f := self.Tiles[x][y].AIFunc
-						f(self.Tiles[x][y])
-					}
-				}
+		for _, object := range tile_objects {
+			if object.AIFunc != nil {
+				f := object.AIFunc
+				f(object)
 			}
 		}
+
+		// Draw...
 
 		self.Draw()
 
