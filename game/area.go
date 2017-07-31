@@ -32,7 +32,7 @@ func NewArea(world *World, x, y int) *Area {
 
 	self.AddRandomly("Tree", VEG_FACTION, 100)
 	self.AddRandomly("Bush", VEG_FACTION, 100)
-	self.AddRandomly("Orc", ORC_FACTION, 10)
+	self.AddRandomly("Sheep", BEAST_FACTION, 10)
 
 	self.AddTileRandomly("Grass", VEG_FACTION, 400)
 

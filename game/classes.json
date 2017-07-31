@@ -13,11 +13,11 @@
 		"ai": "TileGrow"
 	},
 	{
-		"class": "Orc",
-		"char": "o",
-		"colour": "r",
-		"hp": 4,
-		"ai": "RandomWalk"
+		"class": "Sheep",
+		"char": "s",
+		"colour": "w",
+		"hp": 3,
+		"ai": "GrassWalk"
 	},
 	{
 		"class": "Tree",

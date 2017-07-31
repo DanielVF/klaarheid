@@ -14,7 +14,7 @@ const (
 
 const (
 	VEG_FACTION = "Vegetation"
-	ORC_FACTION = "Orcs"
+	BEAST_FACTION = "Beasts"
 )
 
 type Point struct {

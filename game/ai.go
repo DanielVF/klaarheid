@@ -6,12 +6,19 @@ import (
 
 var AI_Lookup = map[string]func(*Object){
 	"TileGrow": TileGrow,
-	"RandomWalk": RandomWalk,
+	"GrassWalk": GrassWalk,
 }
 
-func RandomWalk(self *Object) {
+func GrassWalk(self *Object) {
 	vec := random_direction()
 	self.TryMove(vec.Dx, vec.Dy)
+
+	tile := self.Area.Tiles[self.X][self.Y]
+
+	if tile != nil && tile.Class == "Grass" {
+		self.Area.Tiles[self.X][self.Y] = nil
+		COMBAT_LOG.Printf("%s ate %s at [%d,%d]", self.Class, tile.Class, self.X, self.Y)
+	}
 }
 
 func TileGrow(self *Object) {
