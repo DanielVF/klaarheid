@@ -34,7 +34,7 @@ func NewArea(world *World, x, y int) *Area {
 	self.AddRandomly("Bush", VEG_FACTION, 100)
 	self.AddRandomly("Orc", ORC_FACTION, 10)
 
-	self.AddTileRandomly("Grass", VEG_FACTION, 200)
+	self.AddTileRandomly("Grass", VEG_FACTION, 400)
 
 	return &self
 }
@@ -142,6 +142,18 @@ func (self *Area) Play() {
 				f(object)
 			}
 		}
+
+		for x := 0; x < AREA_WIDTH; x++ {
+			for y := 0; y < AREA_HEIGHT; y++ {
+				if self.Tiles[x][y] != nil {
+					if self.Tiles[x][y].AIFunc != nil {
+						f := self.Tiles[x][y].AIFunc
+						f(self.Tiles[x][y])
+					}
+				}
+			}
+		}
+
 		self.Draw()
 
 		for n := 0; n < 500; n += 50 {

@@ -7,9 +7,10 @@
 	},
 	{
 		"class": "Grass",
-		"char": ".",
-		"colour": "g",
-		"hp": 1
+		"char": ",",
+		"colour": "G",
+		"hp": 1,
+		"ai": "TileGrow"
 	},
 	{
 		"class": "Orc",
@@ -21,7 +22,7 @@
 	{
 		"class": "Tree",
 		"char": "Y",
-		"colour": "G",
+		"colour": "B",
 		"hp": 10
 	}
 ]
