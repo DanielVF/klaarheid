@@ -61,3 +61,15 @@ func (self *Object) BlockableMove(tar_x, tar_y int) bool {
 func (self *Object) Destroy() {
 	self.Area.DeleteObject(self)
 }
+
+func (self *Object) SufferAttack(source *Object) {		// FIXME: return something or other
+	self.HP -= source.Damage
+	if self.HP <= 0 {
+		self.Destroy()
+	}
+	COMBAT_LOG.Printf("%s [%d, %d] attacks %s for %d", source.Class, source.X, source.Y, self.Class, source.Damage)
+}
+
+func (self *Object) Attack(target *Object) {
+	target.SufferAttack(self)
+}

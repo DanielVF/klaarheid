@@ -17,9 +17,9 @@ func GrassWalk(self *Object) {
 
 	self.BlockableMove(tar_x, tar_y)
 
-	for _, object := range self.Area.Objects[self.X][self.Y] {
-		if object.Class == "Grass" {
-			object.Destroy()			// FIXME: use combat system
+	for _, target := range self.Area.Objects[self.X][self.Y] {
+		if target.Class == "Grass" {
+			self.Attack(target)
 			break
 		}
 	}
