@@ -6,6 +6,12 @@
 		"hp": 2
 	},
 	{
+		"class": "Grass",
+		"char": ".",
+		"colour": "g",
+		"hp": 1
+	},
+	{
 		"class": "Orc",
 		"char": "o",
 		"colour": "r",

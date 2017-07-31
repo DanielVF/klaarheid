@@ -13,6 +13,7 @@ type Area struct {
 	Y			int
 	Selection	*Object
 	Objects		[]*Object
+	Tiles		[][]*Object
 }
 
 func NewArea(world *World, x, y int) *Area {
@@ -23,9 +24,17 @@ func NewArea(world *World, x, y int) *Area {
 		Y: y,
 	}
 
+	self.Tiles = make([][]*Object, AREA_WIDTH)
+
+	for i := 0; i < AREA_WIDTH; i++ {
+		self.Tiles[i] = make([]*Object, AREA_HEIGHT)
+	}
+
 	self.AddRandomly("Tree", VEG_FACTION, 100)
 	self.AddRandomly("Bush", VEG_FACTION, 100)
 	self.AddRandomly("Orc", ORC_FACTION, 10)
+
+	self.AddTileRandomly("Grass", VEG_FACTION, 200)
 
 	return &self
 }
@@ -45,16 +54,20 @@ func (self *Area) Draw() {
 
 	MAIN_WINDOW.Clear()
 
-	for _, object := range self.Objects {
-
-		object.Draw()
-
-		if object == self.Selection {
-			MAIN_WINDOW.SetHighlight(object.X, object.Y)
+	for x := 0; x < AREA_WIDTH; x++ {
+		for y := 0; y < AREA_HEIGHT; y++ {
+			if self.Tiles[x][y] != nil {
+				self.Tiles[x][y].Draw()
+			}
 		}
 	}
 
+	for _, object := range self.Objects {
+		object.Draw()
+	}
+
 	if (self.Selection != nil) {
+		MAIN_WINDOW.SetHighlight(self.Selection.X, self.Selection.Y)
 		s := self.Selection.SelectionString()
 		self.WriteSelection(s)
 	}
@@ -62,19 +75,28 @@ func (self *Area) Draw() {
 	MAIN_WINDOW.Flip()
 }
 
-func (self *Area) AddObject(object *Object) {
-	self.Objects = append(self.Objects, object)
-}
-
 func (self *Area) AddRandomly(classname, faction string, count int) {
 
 	for n := 0; n < count; n++ {
 
-		x := rand.Intn(AREA_WIDTH)
-		y := rand.Intn(AREA_HEIGHT)
+		x, y := rand.Intn(AREA_WIDTH), rand.Intn(AREA_HEIGHT)
 
 		if self.Blocked(x, y) == false {
-			self.AddObject(NewObject(classname, self, x, y, faction))
+			new_object := NewObject(classname, self, x, y, faction)
+			self.Objects = append(self.Objects, new_object)
+		}
+	}
+}
+
+func (self *Area) AddTileRandomly(classname, faction string, count int) {
+
+	for n := 0; n < count; n++ {
+
+		x, y := rand.Intn(AREA_WIDTH), rand.Intn(AREA_HEIGHT)
+
+		if self.Tiles[x][y] == nil {
+			new_object := NewObject(classname, self, x, y, faction)
+			self.Tiles[x][y] = new_object
 		}
 	}
 }
@@ -88,7 +110,11 @@ func (self *Area) HandleMouse() bool {				// Return true if selection changed.
 		if err != nil {
 			break
 		}
-		self.Selection = nil
+
+		// Start by selecting the tile (possibly nil) but replace that selection if there's a better object here.
+
+		self.Selection = self.Tiles[click.X][click.Y]
+
 		for _, object := range self.Objects {
 			if object.X == click.X && object.Y == click.Y {
 				self.Selection = object
