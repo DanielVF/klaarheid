@@ -94,7 +94,7 @@ func (self *Area) Draw() {
 
 				// FIXME: can we do better?
 
-				if object_drawn == nil || object_drawn.Passable && self.Objects[x][y][i].Passable == false {
+				if object_drawn == nil || (object_drawn.Passable && self.Objects[x][y][i].Passable == false) {
 					object_drawn = self.Objects[x][y][i]
 					object_drawn.Draw()
 				}
