@@ -6,13 +6,13 @@ func (self *Area) BlockMap() [][]bool {
 
 	ret := make_2d_bool_array(AREA_WIDTH, AREA_HEIGHT)
 
-	for _, object := range self.Objects {
-
-		x := object.X
-		y := object.Y
-
-		if x >= 0 && x < AREA_WIDTH && y >= 0 && y < AREA_HEIGHT {
-			ret[x][y] = true
+	for x := 0; x < AREA_WIDTH; x++ {
+		for y := 0; y < AREA_WIDTH; y++ {
+			for i := 0; i < len(self.Objects[x][y]); i++ {
+				if self.Objects[x][y][i].Passable == false {
+					ret[x][y] = true
+				}
+			}
 		}
 	}
 
@@ -64,32 +64,4 @@ func (self *Area) DistanceMap(x, y int) [][]int {
 			return ret
 		}
 	}
-}
-
-func (self *Area) NearestFactionMob(faction string, x, y int) *Object {
-
-	distances := self.DistanceMap(x, y)
-
-	best_dist := NO_PATH
-	var best_object *Object = nil
-
-	for _, object := range self.Objects {
-
-		if object.Faction != faction {
-			continue
-		}
-
-		if object.X == x && object.Y == y {
-			return object
-		}
-
-		for _, neigh := range neighbours(object.X, object.Y) {
-			if distances[neigh.X][neigh.Y] < best_dist {
-				best_object = object
-				best_dist = distances[neigh.X][neigh.Y]
-			}
-		}
-	}
-
-	return best_object
 }

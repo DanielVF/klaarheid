@@ -5,27 +5,31 @@ import (
 )
 
 var AI_Lookup = map[string]func(*Object){
-	"TileGrow": TileGrow,
+	"PlantGrow": PlantGrow,
 	"GrassWalk": GrassWalk,
 }
 
 func GrassWalk(self *Object) {
 	vec := random_direction()
-	self.TryMove(vec.Dx, vec.Dy)
 
-	tile := self.Area.Tiles[self.X][self.Y]
+	tar_x := self.X + vec.Dx
+	tar_y := self.Y + vec.Dy
 
-	if tile != nil && tile.Class == "Grass" {
-		self.Area.Tiles[self.X][self.Y] = nil
-		COMBAT_LOG.Printf("%s ate %s at [%d,%d]", self.Class, tile.Class, self.X, self.Y)
+	self.BlockableMove(tar_x, tar_y)
+
+	for _, object := range self.Area.Objects[self.X][self.Y] {
+		if object.Class == "Grass" {
+			object.Destroy()			// FIXME: use combat system
+			break
+		}
 	}
 }
 
-func TileGrow(self *Object) {
+func PlantGrow(self *Object) {
 	for _, neigh := range neighbours(self.X, self.Y) {
-		if self.Area.Tiles[neigh.X][neigh.Y] == nil {
+		if self.Area.Empty(neigh.X, neigh.Y) {
 			if rand.Intn(1000) == 0 {
-				self.Area.Tiles[neigh.X][neigh.Y] = NewObject(self.Class, self.Area, neigh.X, neigh.Y, self.Faction)
+				self.Area.AddObject(NewObject(self.Class, self.Area, neigh.X, neigh.Y, self.Faction))
 			}
 		}
 	}

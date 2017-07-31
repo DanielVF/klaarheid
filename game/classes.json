@@ -10,13 +10,15 @@
 		"char": ",",
 		"colour": "G",
 		"hp": 1,
-		"ai": "TileGrow"
+		"passable": true,
+		"ai": "PlantGrow"
 	},
 	{
 		"class": "Sheep",
 		"char": "s",
 		"colour": "w",
 		"hp": 3,
+		"damage": 1,
 		"ai": "GrassWalk"
 	},
 	{

@@ -2,6 +2,7 @@ package game
 
 import (
 	"fmt"
+	electron "../electronbridge_golib"
 )
 
 type Object struct {
@@ -10,6 +11,8 @@ type Object struct {
 	Colour				string			`json:"colour"`
 	AI					string			`json:"ai"`
 	HP					int				`json:"hp"`
+	Damage				int				`json:"damage"`
+	Passable			bool			`json:"passable"`
 
 	Area				*Area
 	X					int
@@ -39,23 +42,22 @@ func NewObject(class string, area *Area, x, y int, faction string) *Object {
 }
 
 func (self *Object) SelectionString() string {
-	return fmt.Sprintf("%s / %s (hp: %d)", self.Class, self.Faction, self.HP)
+	return fmt.Sprintf("%s / %s (hp: %d) [%d, %d]", self.Class, self.Faction, self.HP, self.X, self.Y)
 }
 
 func (self *Object) Draw() {
 	MAIN_WINDOW.Set(self.X, self.Y, self.Char, self.Colour)
 }
 
-func (self *Object) TryMove(dx, dy int) bool {
-
-	tar_x := self.X + dx
-	tar_y := self.Y + dy
+func (self *Object) BlockableMove(tar_x, tar_y int) bool {
 
 	if inbounds(tar_x, tar_y) && self.Area.Blocked(tar_x, tar_y) == false {
-		self.X = tar_x
-		self.Y = tar_y
-		return true
+		success := self.Area.Move(self, tar_x, tar_y)
 	}
 
 	return false
+}
+
+func (self *Object) Destroy() {
+	self.Area.DeleteObject(self)
 }

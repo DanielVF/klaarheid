@@ -9,32 +9,33 @@ import (
 
 type Area struct {
 	World		*World
-	X			int
-	Y			int
+	WorldX		int
+	WorldY		int
 	Selection	*Object
-	Objects		[]*Object
-	Tiles		[][]*Object
+	Objects		[][][]*Object			// 3d array for: X, Y, and any number of objects at that coordinate.
 }
 
-func NewArea(world *World, x, y int) *Area {
+// So the main thing to note is that objects have their own X and Y variables,
+// and it's important that those should match the Area's idea of them.
+
+func NewArea(world *World, worldx, worldy int) *Area {
 
 	self := Area{
 		World: world,
-		X: x,
-		Y: y,
+		WorldX: worldx,
+		WorldY: worldy,
 	}
 
-	self.Tiles = make([][]*Object, AREA_WIDTH)
+	self.Objects = make([][][]*Object, AREA_WIDTH)
 
 	for i := 0; i < AREA_WIDTH; i++ {
-		self.Tiles[i] = make([]*Object, AREA_HEIGHT)
+		self.Objects[i] = make([][]*Object, AREA_HEIGHT)
 	}
 
 	self.AddRandomly("Tree", VEG_FACTION, 100)
 	self.AddRandomly("Bush", VEG_FACTION, 100)
+	self.AddRandomly("Grass", VEG_FACTION, 400)
 	self.AddRandomly("Sheep", BEAST_FACTION, 10)
-
-	self.AddTileRandomly("Grass", VEG_FACTION, 400)
 
 	return &self
 }
@@ -42,12 +43,43 @@ func NewArea(world *World, x, y int) *Area {
 // ---------------------------------------------------------
 
 func (self *Area) Blocked(x, y int) bool {
-	for _, object := range self.Objects {
-		if object.X == x && object.Y == y {
+	for _, object := range self.Objects[x][y] {
+		if object.Passable == false {
 			return true
 		}
 	}
 	return false
+}
+
+func (self *Area) Empty(x, y int) bool {
+	return len(self.Objects[x][y]) == 0
+}
+
+func (self *Area) DeleteObject(o *Object) {
+	for i := 0; i < len(self.Objects[o.X][o.Y]); i++ {
+		if self.Objects[o.X][o.Y][i] == o {
+			self.Objects[o.X][o.Y] = append(self.Objects[o.X][o.Y][:i], self.Objects[o.X][o.Y][i+1:]...)
+			break
+		}
+	}
+}
+
+func (self *Area) Move(o *Object, tar_x, tar_y int) bool {		// Return success
+
+	if inbounds(tar_x, tar_y) == false {
+		return false
+	}
+
+	// No blocked check.
+
+	self.DeleteObject(o)		// Makes use of o.X and o.Y
+
+	o.X = tar_x
+	o.Y = tar_y
+
+	self.AddObject(o)
+
+	return true
 }
 
 func (self *Area) Draw() {
@@ -56,14 +88,18 @@ func (self *Area) Draw() {
 
 	for x := 0; x < AREA_WIDTH; x++ {
 		for y := 0; y < AREA_HEIGHT; y++ {
-			if self.Tiles[x][y] != nil {
-				self.Tiles[x][y].Draw()
+
+			var object_drawn *Object
+			for i := 0; i < len(self.Objects[x][y]); i++ {
+
+				// FIXME: can we do better?
+
+				if object_drawn == nil || object_drawn.Passable && self.Objects[x][y][i].Passable == false {
+					object_drawn = self.Objects[x][y][i]
+					object_drawn.Draw()
+				}
 			}
 		}
-	}
-
-	for _, object := range self.Objects {
-		object.Draw()
 	}
 
 	if (self.Selection != nil) {
@@ -75,28 +111,19 @@ func (self *Area) Draw() {
 	MAIN_WINDOW.Flip()
 }
 
+func (self *Area) AddObject(o *Object) {
+	self.Objects[o.X][o.Y] = append(self.Objects[o.X][o.Y], o)
+}
+
 func (self *Area) AddRandomly(classname, faction string, count int) {
 
 	for n := 0; n < count; n++ {
 
 		x, y := rand.Intn(AREA_WIDTH), rand.Intn(AREA_HEIGHT)
 
-		if self.Blocked(x, y) == false {
+		if self.Empty(x, y) {
 			new_object := NewObject(classname, self, x, y, faction)
-			self.Objects = append(self.Objects, new_object)
-		}
-	}
-}
-
-func (self *Area) AddTileRandomly(classname, faction string, count int) {
-
-	for n := 0; n < count; n++ {
-
-		x, y := rand.Intn(AREA_WIDTH), rand.Intn(AREA_HEIGHT)
-
-		if self.Tiles[x][y] == nil {
-			new_object := NewObject(classname, self, x, y, faction)
-			self.Tiles[x][y] = new_object
+			self.AddObject(new_object)
 		}
 	}
 }
@@ -111,14 +138,8 @@ func (self *Area) HandleMouse() bool {				// Return true if selection changed.
 			break
 		}
 
-		// Start by selecting the tile (possibly nil) but replace that selection if there's a better object here.
-
-		self.Selection = self.Tiles[click.X][click.Y]
-
-		for _, object := range self.Objects {
-			if object.X == click.X && object.Y == click.Y {
-				self.Selection = object
-			}
+		if self.Empty(click.X, click.Y) == false {
+			self.Selection = self.Objects[click.X][click.Y][0]		// FIXME: do better.
 		}
 	}
 
@@ -131,47 +152,28 @@ func (self *Area) HandleMouse() bool {				// Return true if selection changed.
 
 func (self *Area) Play() {
 
-	COMBAT_LOG.Printf("Camera now at area [%d,%d]", self.X, self.Y)
+	COMBAT_LOG.Printf("Camera now at area [%d,%d]", self.WorldX, self.WorldY)
 
 	self.Selection = nil
 
 	for {
 
-		// I forget whether we can safely edit a slice while ranging over it,
-		// so make a copy of the objects slice to work on...
-
-		var normal_objects []*Object = make([]*Object, len(self.Objects))
-		copy(normal_objects, self.Objects)
-
-		// Likewise for tile objects...
-
-		var tile_objects []*Object
+		var all_objects []*Object
 
 		for x := 0; x < AREA_WIDTH; x++ {
 			for y := 0; y < AREA_HEIGHT; y++ {
-				if self.Tiles[x][y] != nil {
-					tile_objects = append(tile_objects, self.Tiles[x][y])
+				for i := 0; i < len(self.Objects[x][y]); i++ {
+					all_objects = append(all_objects, self.Objects[x][y][i])
 				}
 			}
 		}
 
-		// Now call AIs...
-
-		for _, object := range normal_objects {
+		for _, object := range all_objects {
 			if object.AIFunc != nil {
 				f := object.AIFunc
 				f(object)
 			}
 		}
-
-		for _, object := range tile_objects {
-			if object.AIFunc != nil {
-				f := object.AIFunc
-				f(object)
-			}
-		}
-
-		// Draw...
 
 		self.Draw()
 
@@ -181,6 +183,19 @@ func (self *Area) Play() {
 				self.Draw()
 			}
 			time.Sleep(50 * time.Millisecond)
+		}
+
+		// Sanity check during development...
+		// Do all objects have the X,Y coordinates that the Area believes they do?
+
+		for x := 0; x < AREA_WIDTH; x++ {
+			for y := 0; y < AREA_HEIGHT; y++ {
+				for i := 0; i < len(self.Objects[x][y]); i++ {
+					if self.Objects[x][y][i].X != x || self.Objects[x][y][i].Y != y {
+						electron.Alertf("Warning: x/y mismatch from object to area")
+					}
+				}
+			}
 		}
 	}
 }
