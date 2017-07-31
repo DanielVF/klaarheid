@@ -134,12 +134,14 @@ func (self *Area) HandleMouse() bool {				// Return true if selection changed.
 
 	for {
 		click, err := electron.GetMousedown()
-		if err != nil {
+		if err != nil || inbounds(click.X, click.Y) == false {
 			break
 		}
 
 		if self.Empty(click.X, click.Y) == false {
-			self.Selection = self.Objects[click.X][click.Y][0]		// FIXME: do better.
+			self.Selection = self.Objects[click.X][click.Y][len(self.Objects[click.X][click.Y]) - 1]		// FIXME: do better?
+		} else {
+			self.Selection = nil
 		}
 	}
 
