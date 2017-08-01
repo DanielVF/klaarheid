@@ -214,7 +214,7 @@ func (w *World) PlayLevel() {
 
 func (w *World) WriteSelection(s string) {
 	for x := 0; x < len(s); x++ {
-		w.Window.Set(x, w.Height + 1, s[x], 'w')
+		w.Window.Set(x, w.Height + 1, string(s[x]), "w")
 	}
 }
 

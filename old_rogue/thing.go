@@ -55,7 +55,7 @@ func (t *Thing) SelectionString() string {
 }
 
 func (t *Thing) Draw() {
-	t.World.Window.Set(t.X, t.Y, t.Char, t.Colour)
+	t.World.Window.Set(t.X, t.Y, string(t.Char), string(t.Colour))
 }
 
 // Other useful methods used by types that "inherit" from Thing...
