@@ -14,8 +14,8 @@ type Object struct {
 	Passable			bool			`json:"passable"`
 
 	Area				*Area
-	X					int
-	Y					int
+	X					int				// Object must not set X or Y itself
+	Y					int				// but rather call Area.Move()
 	Faction				string
 	AIFunc				func(*Object)
 }

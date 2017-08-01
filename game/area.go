@@ -34,6 +34,7 @@ func NewArea(world *World, worldx, worldy int) *Area {
 
 	self.AddRandomly("Tree", VEG_FACTION, 100)
 	self.AddRandomly("Bush", VEG_FACTION, 100)
+	self.AddRandomly("Rock", MINERAL_FACTION, 75)
 	self.AddRandomly("Grass", VEG_FACTION, 400)
 	self.AddRandomly("Sheep", BEAST_FACTION, 10)
 

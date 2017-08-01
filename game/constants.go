@@ -15,6 +15,7 @@ const (
 const (
 	VEG_FACTION = "Vegetation"
 	BEAST_FACTION = "Beasts"
+	MINERAL_FACTION = "Minerals"
 )
 
 type Point struct {
