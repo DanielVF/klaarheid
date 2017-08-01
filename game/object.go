@@ -2,6 +2,7 @@ package game
 
 import (
 	"fmt"
+	"reflect"
 )
 
 type Object struct {
@@ -36,6 +37,10 @@ func NewObject(class string, area *Area, x, y int, faction string) *Object {
 	o.X = x
 	o.Y = y
 	o.Faction = faction
+	if o.AIClass != nil {
+		ai := reflect.New(reflect.TypeOf(o.AIClass)).Elem().Interface()
+		o.AIClass = ai.(Ai)
+	}
 
 	return o
 }

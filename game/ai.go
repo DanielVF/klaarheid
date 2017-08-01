@@ -2,14 +2,22 @@ package game
 
 import (
 	"math/rand"
+	"reflect"
 )
 
-var AI_Lookup = map[string]func(*Object){
-	"PlantGrow": PlantGrow,
-	"GrassWalk": GrassWalk,
+type Ai interface {
+	AiStep(*Object)
 }
 
-func GrassWalk(self *Object) {
+var AI_Lookup = map[string]reflect.Type{
+	"PlantGrow": reflect.TypeOf(GrassWalkAi{}),
+	"GrassWalk": reflect.TypeOf(PlantGrowAi{}),
+}
+
+type GrassWalkAi struct {
+}
+
+func (ai *GrassWalkAi) AiStep(self *Object) {
 	vec := random_direction()
 
 	tar_x := self.X + vec.Dx
@@ -25,7 +33,10 @@ func GrassWalk(self *Object) {
 	}
 }
 
-func PlantGrow(self *Object) {
+type PlantGrowAi struct {
+}
+
+func (ai *PlantGrowAi) AiStep(self *Object) {
 	for _, neigh := range neighbours(self.X, self.Y) {
 		if self.Area.Empty(neigh.X, neigh.Y) {
 			if rand.Intn(1000) == 0 {

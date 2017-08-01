@@ -173,8 +173,8 @@ func (self *Area) Play() {
 
 		for _, object := range all_objects {
 			if object.AIFunc != nil {
-				f := object.AIFunc
-				f(object)
+			if object.AIClass != nil {
+				object.AIClass.AiStep(object)
 			}
 		}
 

@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
+	"reflect"
 	"time"
+
 	electron "../electronbridge_golib"
 )
 
@@ -33,12 +35,12 @@ func LoadClasses() {
 	for _, base := range base_classes {
 
 		if base.AI != "" {
-			f, ok := AI_Lookup[base.AI]
+			aiType, ok := AI_Lookup[base.AI]
 			if !ok {
 				panic(fmt.Sprintf("LoadClasses: Unknown AI '%s'", base.AI))
-			} else {
-				base.AIFunc = f
 			}
+			ai := reflect.New(aiType).Elem().Interface()
+			base.AIClass = (ai).(Ai)
 		}
 
 		BASE_CLASSES[base.Class] = base
